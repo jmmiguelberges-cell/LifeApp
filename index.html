@@ -878,6 +878,8 @@
 
 <script>
 function go(p) { window.location.replace(p); }
+function getStr(d) { return d.toISOString().slice(0,10); }
+function todayISO() { return getStr(new Date()); }
 
 /* ── DATE & GREETING ── */
 const now = new Date();
@@ -1138,15 +1140,6 @@ function updGoal(idx) {
         awardXP(dbMissions[idx].stat, 200, `Objetivo: ${dbMissions[idx].name}`, todayStr);
         localStorage.setItem(K_XP, JSON.stringify(dbXP));
         renderStats(); renderLog();
-renderHabitsDash();
-// Load username
-(function(){
-    const name = localStorage.getItem('lifeos_username_v1');
-    if (name) {
-        const el = document.getElementById('user-name-display');
-        if (el) el.textContent = name;
-    }
-})();
         showToast('+200 XP — ¡Objetivo completado!');
     }
     renderGoals();
@@ -1273,6 +1266,152 @@ function renderDataSummary() {
         tile('Días nutrición',    nutriDays, 'var(--a2)') +
         tile('Entrenos',          totalSess, 'var(--a3)') +
         tile('Records (PR)',      totalPRs,  'var(--a4)');
+}
+
+
+/* ── SETTINGS ── */
+const K_USERNAME = 'lifeos_username_v1';
+
+function openSettings() {
+    const name = localStorage.getItem(K_USERNAME) || 'Josema';
+    document.getElementById('settings-name').value = name;
+    const infoEl = document.getElementById('settings-storage-info');
+    if (infoEl) {
+        const keyLabels = {
+            'josema_rpg_time_v4': 'Agenda (tareas)',
+            'josema_rpg_nutri_log': 'Nutrición (diario)',
+            'lifeos_sessions_v1': 'Físico (sesiones)',
+            'lifeos_finances_tx_v1': 'Finanzas (movimientos)',
+            'lifeos_habits_v1': 'Hábitos',
+            'lifeos_nutri_body_v1': 'Peso y composición',
+        };
+        let lines = [], totalChars = 0;
+        Object.entries(keyLabels).forEach(([k, label]) => {
+            const val = localStorage.getItem(k);
+            if (val) {
+                let count = 1;
+                try { const p = JSON.parse(val); count = Array.isArray(p) ? p.length : typeof p === 'object' ? Object.keys(p).length : 1; } catch {}
+                totalChars += val.length;
+                lines.push(`<span style="color:var(--text);font-weight:600">${count}</span> ${label}`);
+            }
+        });
+        infoEl.innerHTML = lines.join('<br>') + `<br><br><span style="color:var(--dim)">~${(totalChars/1024).toFixed(1)} KB</span>`;
+    }
+    const ov = document.getElementById('settings-overlay');
+    if (ov) ov.style.display = 'flex';
+}
+
+function closeSettings(e) {
+    const ov = document.getElementById('settings-overlay');
+    if (!e || e.target === ov) { if (ov) ov.style.display = 'none'; }
+}
+
+function saveName() {
+    const name = document.getElementById('settings-name').value.trim();
+    if (!name) return;
+    localStorage.setItem(K_USERNAME, name);
+    const el = document.getElementById('user-name-display');
+    if (el) el.textContent = name;
+    closeSettings();
+    toast('✓ Nombre actualizado');
+}
+
+function clearAllData() {
+    if (!confirm('¿Seguro? Se borrarán TODOS los datos.')) return;
+    ALL_KEYS.forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem(K_USERNAME);
+    const ov = document.getElementById('settings-overlay');
+    if (ov) ov.style.display = 'none';
+    toast('Datos borrados. Recargando...');
+    setTimeout(() => window.location.reload(), 1200);
+}
+
+/* ── HABITS DASHBOARD (index) ── */
+function renderHabitsDash() {
+    const dbH = JSON.parse(localStorage.getItem('lifeos_habits_v1')) || [];
+    const dbL = JSON.parse(localStorage.getItem('lifeos_habits_log_v1')) || {};
+    const todayStr = getStr(now);
+    const dow = now.getDay();
+
+    const emptyEl = document.getElementById('habits-dash-empty');
+    const progEl  = document.getElementById('habits-dash-progress');
+    const listEl  = document.getElementById('habits-dash-list');
+    if (!listEl) return;
+
+    if (!dbH.length) {
+        if (emptyEl) emptyEl.style.display = 'block';
+        if (progEl)  progEl.style.display  = 'none';
+        listEl.innerHTML = '';
+        return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    const active = dbH.filter(h => {
+        if (h.freq === 'daily')    return true;
+        if (h.freq === 'weekdays') return dow >= 1 && dow <= 5;
+        if (h.freq === 'weekend')  return dow === 0 || dow === 6;
+        if (h.freq === 'custom')   return (h.days || []).includes(dow);
+        return true;
+    });
+
+    if (!active.length) {
+        if (emptyEl) emptyEl.style.display = 'block';
+        if (progEl)  progEl.style.display  = 'none';
+        listEl.innerHTML = '';
+        return;
+    }
+
+    let done = 0;
+    active.forEach(h => {
+        const val = ((dbL[todayStr] || {})[h.id]) || 0;
+        if (h.type === 'bool' && val) done++;
+        else if (h.type === 'count' && val >= h.goal) done++;
+    });
+    const pct = Math.round(done / active.length * 100);
+
+    if (progEl) {
+        progEl.style.display = 'block';
+        const doneEl = document.getElementById('hd-done');
+        const totEl  = document.getElementById('hd-total');
+        const pctEl  = document.getElementById('hd-pct');
+        const barEl  = document.getElementById('hd-bar');
+        if (doneEl) doneEl.textContent = done;
+        if (totEl)  totEl.textContent  = active.length;
+        if (pctEl)  pctEl.textContent  = pct + '%';
+        if (barEl)  barEl.style.width  = pct + '%';
+    }
+
+    const sorted = [...active].sort((a, b) => {
+        const va = ((dbL[todayStr] || {})[a.id]) || 0;
+        const vb = ((dbL[todayStr] || {})[b.id]) || 0;
+        const da = a.type==='bool' ? (va?1:0) : (va>=a.goal?1:0);
+        const db2= b.type==='bool' ? (vb?1:0) : (vb>=b.goal?1:0);
+        return da - db2;
+    }).slice(0, 5);
+
+    listEl.innerHTML = '<div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden">' +
+    sorted.map((h, idx) => {
+        const val    = ((dbL[todayStr] || {})[h.id]) || 0;
+        const isDone = h.type === 'bool' ? !!val : val >= h.goal;
+        const pctH   = h.type === 'count' ? Math.min(100, Math.round(val / h.goal * 100)) : (isDone ? 100 : 0);
+        const isLast = idx === sorted.length - 1;
+        return `<div onclick="go('habitos.html')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+            ${isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,0.04);'}cursor:pointer">
+            <div style="width:36px;height:36px;border-radius:11px;flex-shrink:0;background:${h.color}18;
+                border:1px solid ${h.color}28;display:flex;align-items:center;justify-content:center;
+                font-size:18px;position:relative">${h.emoji}${isDone ? '<div style="position:absolute;inset:0;border-radius:11px;background:rgba(82,183,136,0.85);display:flex;align-items:center;justify-content:center;font-size:14px">✓</div>' : ''}</div>
+            <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:${isDone?'var(--dim)':'var(--text)'};
+                    text-decoration:${isDone?'line-through':'none'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.name}</div>
+                ${h.type==='count'?`<div style="height:3px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${pctH}%;background:${h.color};border-radius:99px"></div></div>`:''}
+            </div>
+            <div style="font-size:11px;font-weight:600;flex-shrink:0;color:${isDone?'var(--green)':h.color}">
+                ${h.type==='count'?`${val}/${h.goal}`:(isDone?'✓ Hecho':'Pendiente')}
+            </div>
+        </div>`;
+    }).join('') +
+    (active.length > 5 ? `<div onclick="go('habitos.html')" style="padding:10px 14px;font-size:12px;color:var(--dim);text-align:center;cursor:pointer;border-top:1px solid rgba(255,255,255,0.04)">Ver todos (${active.length-5} más) →</div>` : '') +
+    '</div>';
 }
 
 /* ── INIT ── */
