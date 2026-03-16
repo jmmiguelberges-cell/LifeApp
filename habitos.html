@@ -879,5 +879,15 @@ renderManage();
         sessionStorage.setItem('lifeos_splash','1');},1600);
 })();
 </script>
+
+<!-- Service Worker registration -->
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/LifeRPG/sw.js')
+            .catch(err => console.log('SW error:', err));
+    });
+}
+</script>
 </body>
 </html>
