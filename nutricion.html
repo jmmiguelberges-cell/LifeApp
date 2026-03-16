@@ -6,7 +6,7 @@
     <title>Life OS — Nutrición</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeApp/icono.jpg">
+    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeApp/icono.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1975,56 +1975,104 @@ function renderDiaryMenuProposal() {
     const dk = DAYS_KEY[todayDow];
     const dayData = (proto.data || {})[dk] || {};
 
+    // Track which dishes are already in today's diary
+    const todayEntries = dbLog[todayStr] || [];
+    const confirmedNames = new Set(todayEntries.map(e => e.name));
+
     const hasMeals = MEALS_MENU.some(m => (dayData[m] || []).length > 0);
     if (!hasMeals) { el.style.display = 'none'; return; }
 
+    // Count totals
+    let totalDishes = 0, confirmedDishes = 0;
+    MEALS_MENU.forEach(meal => {
+        (dayData[meal] || []).forEach(d => {
+            totalDishes++;
+            if (confirmedNames.has(d.name) || confirmedNames.has(d.name + ' ×1')) confirmedDishes++;
+        });
+    });
+    const allDone = confirmedDishes === totalDishes && totalDishes > 0;
+    const pct = totalDishes ? Math.round(confirmedDishes / totalDishes * 100) : 0;
+
     el.style.display = 'block';
     el.innerHTML = `
-        <div style="background:var(--s1);border:1px solid rgba(82,183,136,0.2);border-radius:16px;overflow:hidden;margin-bottom:0">
-            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
-                <div style="flex:1">
-                    <div style="font-size:12px;font-weight:700;color:var(--acc);letter-spacing:0.3px">MENÚ PROPUESTO HOY</div>
-                    <div style="font-size:11px;color:var(--dim);margin-top:1px">${proto.name}</div>
+        <div style="background:var(--s1);border:1px solid ${allDone ? 'rgba(82,183,136,0.35)' : 'rgba(82,183,136,0.15)'};border-radius:16px;overflow:hidden;margin-bottom:0">
+            <!-- Header -->
+            <div style="padding:12px 16px 10px;border-bottom:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                    <div style="flex:1">
+                        <div style="font-size:11px;font-weight:700;color:var(--acc);letter-spacing:0.5px;text-transform:uppercase">Menú propuesto — ${proto.name}</div>
+                        <div style="font-size:12px;color:var(--sub);margin-top:1px">${confirmedDishes}/${totalDishes} platos confirmados</div>
+                    </div>
+                    ${allDone 
+                        ? `<div style="padding:6px 12px;border-radius:8px;background:rgba(82,183,136,0.12);color:var(--green);font-size:12px;font-weight:700;border:1px solid rgba(82,183,136,0.25)">✓ Todo confirmado</div>`
+                        : `<button onclick="confirmAllMenuMeals('${dk}')"
+                            style="padding:6px 14px;border-radius:8px;background:var(--acc);color:#111;
+                            border:none;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;
+                            cursor:pointer;white-space:nowrap">Confirmar todo</button>`
+                    }
                 </div>
-                <button onclick="confirmAllMenuMeals('${dk}')"
-                    style="padding:6px 14px;border-radius:8px;background:var(--acc);color:#111;
-                    border:none;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;
-                    cursor:pointer;white-space:nowrap;flex-shrink:0">Confirmar todo</button>
+                <!-- Progress bar -->
+                <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden">
+                    <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#52b788,#c9a84c);border-radius:99px;transition:width 0.4s ease"></div>
+                </div>
             </div>
+            <!-- Meals -->
             ${MEALS_MENU.map(meal => {
                 const dishes = dayData[meal] || [];
                 if (!dishes.length) return '';
                 return `
                 <div style="border-bottom:1px solid rgba(255,255,255,0.03)">
                     <div style="padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px">${meal}</div>
-                    ${dishes.map((d, i) => `
-                    <div style="display:flex;align-items:center;gap:8px;padding:5px 16px 7px">
-                        <div style="flex:1;min-width:0">
-                            <div style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
-                            <div style="font-size:11px;color:var(--sub);margin-top:1px">${Math.round(d.kcal)} kcal · P:${Math.round(d.p||0)}g C:${Math.round(d.c||0)}g G:${Math.round(d.f||0)}g</div>
-                        </div>
-                        <div style="display:flex;gap:4px;flex-shrink:0">
-                            <button onclick="confirmProposedDish('${dk}','${meal}',${i})"
-                                title="Confirmar"
-                                style="width:30px;height:30px;border-radius:8px;background:rgba(82,183,136,0.12);
-                                color:var(--acc);border:1px solid rgba(82,183,136,0.25);font-size:14px;
-                                display:flex;align-items:center;justify-content:center;cursor:pointer">✓</button>
-                            <button onclick="editProposedQty('${dk}','${meal}',${i})"
-                                title="Modificar cantidad"
-                                style="width:30px;height:30px;border-radius:8px;background:rgba(201,168,76,0.1);
-                                color:var(--yellow);border:1px solid rgba(201,168,76,0.2);font-size:12px;
-                                display:flex;align-items:center;justify-content:center;cursor:pointer">×</button>
-                            <button onclick="substituteProposedDish('${dk}','${meal}',${i})"
-                                title="Sustituir"
-                                style="width:30px;height:30px;border-radius:8px;background:rgba(91,138,240,0.1);
-                                color:var(--blue);border:1px solid rgba(91,138,240,0.2);font-size:12px;
-                                display:flex;align-items:center;justify-content:center;cursor:pointer">⇄</button>
-                        </div>
-                    </div>`).join('')}
+                    ${dishes.map((d, i) => {
+                        const isConfirmed = confirmedNames.has(d.name);
+                        return `
+                        <div style="display:flex;align-items:center;gap:8px;padding:6px 16px 8px;
+                            background:${isConfirmed ? 'rgba(82,183,136,0.04)' : 'transparent'};
+                            transition:background 0.2s">
+                            <!-- Status icon -->
+                            <div style="width:22px;height:22px;border-radius:6px;flex-shrink:0;
+                                background:${isConfirmed ? 'rgba(82,183,136,0.15)' : 'rgba(255,255,255,0.04)'};
+                                border:1px solid ${isConfirmed ? 'rgba(82,183,136,0.3)' : 'rgba(255,255,255,0.06)'};
+                                display:flex;align-items:center;justify-content:center;font-size:11px;
+                                color:${isConfirmed ? 'var(--green)' : 'var(--dim)'}">
+                                ${isConfirmed ? '✓' : ''}
+                            </div>
+                            <div style="flex:1;min-width:0">
+                                <div style="font-size:13px;font-weight:${isConfirmed ? '400' : '500'};
+                                    color:${isConfirmed ? 'var(--dim)' : 'var(--text)'};
+                                    text-decoration:${isConfirmed ? 'line-through' : 'none'};
+                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
+                                <div style="font-size:11px;color:var(--sub);margin-top:1px">
+                                    ${Math.round(d.kcal)} kcal · P:${Math.round(d.p||0)} C:${Math.round(d.c||0)} G:${Math.round(d.f||0)}g
+                                </div>
+                            </div>
+                            ${!isConfirmed ? `
+                            <div style="display:flex;gap:4px;flex-shrink:0">
+                                <button onclick="confirmProposedDish('${dk}','${meal}',${i})"
+                                    title="Confirmar"
+                                    style="width:30px;height:30px;border-radius:8px;background:rgba(82,183,136,0.12);
+                                    color:var(--green);border:1px solid rgba(82,183,136,0.25);font-size:14px;
+                                    display:flex;align-items:center;justify-content:center;cursor:pointer">✓</button>
+                                <button onclick="editProposedQty('${dk}','${meal}',${i})"
+                                    title="Modificar cantidad"
+                                    style="width:30px;height:30px;border-radius:8px;background:rgba(201,168,76,0.1);
+                                    color:var(--yellow);border:1px solid rgba(201,168,76,0.2);font-size:13px;font-weight:700;
+                                    display:flex;align-items:center;justify-content:center;cursor:pointer">×</button>
+                                <button onclick="substituteProposedDish('${dk}','${meal}',${i})"
+                                    title="Sustituir plato"
+                                    style="width:30px;height:30px;border-radius:8px;background:rgba(91,138,240,0.1);
+                                    color:var(--blue);border:1px solid rgba(91,138,240,0.2);font-size:14px;
+                                    display:flex;align-items:center;justify-content:center;cursor:pointer">⇄</button>
+                            </div>` : `
+                            <div style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0">En diario</div>`}
+                        </div>`;
+                    }).join('')}
                 </div>`;
             }).join('')}
         </div>`;
 }
+
+
 
 function confirmProposedDish(dayKey, meal, idx) {
     const proto = getThisWeekProto();
