@@ -880,12 +880,22 @@ renderManage();
 })();
 </script>
 
-<!-- Service Worker registration -->
+
 <script>
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/LifeRPG/sw.js')
-            .catch(err => console.log('SW error:', err));
+    navigator.serviceWorker.register('/LifeApp/sw.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+            const newSW = reg.installing;
+            newSW.addEventListener('statechange', () => {
+                if (newSW.state === 'activated') {
+                    window.location.reload(); // reload to get fresh files
+                }
+            });
+        });
+    });
+    // If controlled by old SW, force update check
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
     });
 }
 </script>

@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Life OS — Nutrición</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeRPG/icono.jpg">
+    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeApp/icono.jpg">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2117,12 +2116,22 @@ renderBodyLog();
 
 </script>
 
-<!-- Service Worker registration -->
+
 <script>
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/LifeRPG/sw.js')
-            .catch(err => console.log('SW error:', err));
+    navigator.serviceWorker.register('/LifeApp/sw.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+            const newSW = reg.installing;
+            newSW.addEventListener('statechange', () => {
+                if (newSW.state === 'activated') {
+                    window.location.reload(); // reload to get fresh files
+                }
+            });
+        });
+    });
+    // If controlled by old SW, force update check
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
     });
 }
 </script>

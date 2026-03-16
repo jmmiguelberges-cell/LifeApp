@@ -1,62 +1,61 @@
-// Life OS — Service Worker
-// Permite instalación como PWA y uso offline básico
+// Life OS — Service Worker v3
+// Estrategia: Network First — siempre intenta red, cachea como fallback
 
-const CACHE_NAME = 'lifeos-20260316-2006';
+const CACHE_NAME = 'lifeos-20260316-2110';
+
 const ASSETS = [
-    '/LifeRPG/',
-    '/LifeRPG/index.html',
-    '/LifeRPG/agenda.html',
-    '/LifeRPG/nutricion.html',
-    '/LifeRPG/fisico.html',
-    '/LifeRPG/finanzas.html',
-    '/LifeRPG/habitos.html',
-    '/LifeRPG/lifeos.css',
-    '/LifeRPG/alimentos.js',
-    '/LifeRPG/recetas.js',
-    '/LifeRPG/manifest.json',
-    '/LifeRPG/icono.jpg',
+    '/LifeApp/',
+    '/LifeApp/index.html',
+    '/LifeApp/agenda.html',
+    '/LifeApp/nutricion.html',
+    '/LifeApp/fisico.html',
+    '/LifeApp/finanzas.html',
+    '/LifeApp/habitos.html',
+    '/LifeApp/lifeos.css',
+    '/LifeApp/alimentos.js',
+    '/LifeApp/recetas.js',
+    '/LifeApp/manifest.json',
 ];
 
-// Install: cache all assets
 self.addEventListener('install', e => {
+    self.skipWaiting(); // activate immediately
     e.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(ASSETS))
-            .then(() => self.skipWaiting())
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
 });
 
-// Activate: remove old caches
 self.addEventListener('activate', e => {
     e.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-        ).then(() => self.clients.claim())
+        caches.keys()
+            .then(keys => Promise.all(
+                keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+            ))
+            .then(() => self.clients.claim()) // take control of all tabs immediately
     );
 });
 
-// Fetch: cache first, network fallback
 self.addEventListener('fetch', e => {
-    // Skip non-GET and external requests
     if (e.request.method !== 'GET') return;
-    if (!e.request.url.includes('/LifeRPG/')) return;
 
     e.respondWith(
-        caches.match(e.request)
-            .then(cached => {
-                if (cached) return cached;
-                return fetch(e.request).then(response => {
-                    // Cache new responses
-                    if (response && response.status === 200) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
-                    }
-                    return response;
-                });
+        // Network first — always try to get fresh version
+        fetch(e.request)
+            .then(response => {
+                if (response && response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+                }
+                return response;
             })
             .catch(() => {
-                // Offline fallback: return cached index
-                return caches.match('/LifeRPG/index.html');
+                // Only fall back to cache if network fails (offline)
+                return caches.match(e.request)
+                    .then(cached => cached || caches.match('/LifeApp/index.html'));
             })
     );
+});
+
+// Tell all open tabs to reload when new SW activates
+self.addEventListener('message', e => {
+    if (e.data === 'skipWaiting') self.skipWaiting();
 });
