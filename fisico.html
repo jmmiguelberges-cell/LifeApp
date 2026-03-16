@@ -2245,9 +2245,17 @@ function switchSection(sec) {
     const subTabs = document.getElementById('strength-tabs');
     if (subTabs) subTabs.style.display = sec==='strength' ? 'flex' : 'none';
 
-    // Render section
-    if (sec==='running')  renderRunning();
-    if (sec==='mobility') { mobSwitchTab('session'); renderMobRoutinesList(); renderMobHistory(); }
+    // Activate inner view for running/mobility (they use .view which needs .active)
+    if (sec==='running') {
+        const vr = document.getElementById('view-running');
+        if (vr) vr.classList.add('active');
+        renderRunning();
+    }
+    if (sec==='mobility') {
+        const vm = document.getElementById('view-mobility');
+        if (vm) vm.classList.add('active');
+        mobSwitchTab('session');
+    }
 }
 
 /* ════════════════════════════════════════

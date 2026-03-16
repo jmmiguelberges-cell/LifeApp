@@ -841,6 +841,7 @@ function go(p) { window.location.replace(p); }
 
 /* ── STORAGE ── */
 const K_LOG   = 'josema_rpg_nutri_log';
+const K_WEEK_ASSIGN = 'lifeos_nutri_week_assign_v1';
 const K_GOALS = 'josema_rpg_nutri_goals';
 const K_DISHES= 'josema_rpg_nutri_recipes';
 
@@ -856,7 +857,9 @@ const now      = new Date();
 const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
 let dbLog    = JSON.parse(localStorage.getItem(K_LOG))    || {};
-let dbGoals  = JSON.parse(localStorage.getItem(K_GOALS))  || {kcal:2500, p:150, c:250, f:80};
+let dbGoals      = JSON.parse(localStorage.getItem(K_GOALS))      || {kcal:2500, p:150, c:250, f:80};
+let dbWeekAssign = JSON.parse(localStorage.getItem(K_WEEK_ASSIGN)) || {};
+let currentProtoIdx = null;
 let dbDishes = JSON.parse(localStorage.getItem(K_DISHES)) || [];
 
 if (!dbLog[todayStr]) dbLog[todayStr] = [];
@@ -1715,10 +1718,6 @@ function applyTDEE(){
 const DAYS_MENU = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const DAYS_KEY  = ['mon','tue','wed','thu','fri','sat','sun'];
 const MEALS_MENU= ['Desayuno','Comida','Merienda','Cena'];
-const K_WEEK_ASSIGN = 'lifeos_nutri_week_assign_v1';
-
-let dbWeekAssign = JSON.parse(localStorage.getItem(K_WEEK_ASSIGN)) || {}; // {'2026-W11': protoName}
-let currentProtoIdx = null; // index into dbMenuPlans currently being edited
 
 function saveWeekAssign() { localStorage.setItem(K_WEEK_ASSIGN, JSON.stringify(dbWeekAssign)); }
 
