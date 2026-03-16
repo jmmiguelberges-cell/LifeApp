@@ -395,6 +395,9 @@
             </div>
         </div>
 
+        <!-- Menú propuesto hoy -->
+        <div id="diary-menu-proposal" style="display:none;margin-bottom:12px"></div>
+
         <!-- Quick add manual -->
         <div class="quick-add">
             <div class="qa-label">Registrar alimento</div>
@@ -754,33 +757,57 @@
     <!-- ═══ MENÚ SEMANAL ═══ -->
     <div id="view-menu" class="view s1">
 
-        <!-- Week selector -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
-            background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:12px 16px">
-            <button onclick="changeMenuWeek(-1)" style="width:36px;height:36px;border-radius:10px;
-                background:var(--s2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer">‹</button>
-            <div style="text-align:center">
-                <div style="font-size:13px;font-weight:600;color:var(--text)" id="menu-week-label">Semana del...</div>
-                <div style="font-size:11px;color:var(--dim);margin-top:2px" id="menu-week-kcal">0 kcal totales</div>
+        <!-- Prototype selector header -->
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="font-size:11px;font-weight:600;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase">Prototipos de semana</div>
+                <button onclick="newMenuProto()"
+                    style="font-size:12px;font-weight:600;color:var(--acc);background:rgba(82,183,136,0.1);
+                    border:1px solid rgba(82,183,136,0.2);border-radius:8px;padding:5px 12px;
+                    font-family:'DM Sans',sans-serif;cursor:pointer">+ Nuevo</button>
             </div>
-            <button onclick="changeMenuWeek(1)" style="width:36px;height:36px;border-radius:10px;
-                background:var(--s2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer">›</button>
+            <!-- Proto chips -->
+            <div id="menu-proto-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
         </div>
 
-        <!-- Save/load menu -->
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-            <input class="inp" id="menu-name" type="text" placeholder="Nombre del menú (ej: Semana tipo)" style="margin-bottom:0;flex:1">
-            <button onclick="saveMenuPlan()"
-                style="padding:0 16px;border-radius:10px;background:rgba(82,183,136,0.1);
-                color:var(--acc);border:1px solid rgba(82,183,136,0.2);font-size:13px;font-weight:600;
-                font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0">Guardar</button>
+        <!-- Active proto editor -->
+        <div id="menu-proto-editor" style="display:none">
+            <!-- Proto name + actions -->
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+                <input class="inp" id="menu-proto-name" type="text" placeholder="Nombre (ej: Semana A)" style="margin-bottom:0;flex:1">
+                <button onclick="saveCurrentProto()"
+                    style="padding:0 16px;border-radius:10px;background:var(--acc);
+                    color:#111;border:none;font-size:13px;font-weight:700;
+                    font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0">Guardar</button>
+                <button onclick="if(confirm('¿Eliminar este prototipo?'))deleteCurrentProto()"
+                    style="width:40px;border-radius:10px;background:rgba(224,95,95,0.08);
+                    color:var(--red);border:1px solid rgba(224,95,95,0.15);font-size:14px;
+                    cursor:pointer;flex-shrink:0">✕</button>
+            </div>
+            <!-- Assign to this week -->
+            <div id="menu-assign-row" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;
+                background:rgba(91,138,240,0.06);border:1px solid rgba(91,138,240,0.15);
+                border-radius:12px;padding:10px 14px">
+                <div style="flex:1">
+                    <div style="font-size:12px;font-weight:600;color:var(--text)" id="menu-assign-label">Semana actual</div>
+                    <div style="font-size:11px;color:var(--dim);margin-top:1px" id="menu-assign-sub">Sin prototipo asignado</div>
+                </div>
+                <button onclick="assignProtoToWeek()"
+                    style="padding:6px 14px;border-radius:8px;background:rgba(91,138,240,0.15);
+                    color:var(--blue);border:1px solid rgba(91,138,240,0.25);font-size:12px;font-weight:600;
+                    font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0"
+                    id="menu-assign-btn">Asignar a esta semana</button>
+            </div>
+            <!-- Proto kcal -->
+            <div style="font-size:11px;color:var(--dim);margin-bottom:8px;text-align:right" id="menu-week-kcal"></div>
+            <!-- Days grid -->
+            <div id="menu-days-grid"></div>
         </div>
 
-        <!-- Saved plans chips -->
-        <div id="menu-plans-row" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;-webkit-overflow-scrolling:touch"></div>
-
-        <!-- Days grid -->
-        <div id="menu-days-grid"></div>
+        <!-- Empty state -->
+        <div id="menu-empty-state" style="text-align:center;padding:40px 0;color:var(--dim);font-size:13px">
+            Crea tu primer prototipo de semana con el botón <strong style="color:var(--acc)">+ Nuevo</strong>
+        </div>
 
     </div>
 
@@ -851,6 +878,7 @@ function switchTab(view, el) {
 let ringChart = null;
 
 function renderDiary() {
+    renderDiaryMenuProposal();
     const entries = dbLog[todayStr] || [];
     let tK=0, tP=0, tC=0, tF=0;
     entries.forEach(e=>{ tK+=+e.kcal||0; tP+=+e.p||0; tC+=+e.c||0; tF+=+e.f||0; });
@@ -1473,18 +1501,14 @@ renderDishes();
 
 /* ══ BODY TRACKING ══ */
 const K_BODY = 'lifeos_nutri_body_v1';
-const K_MENU = 'lifeos_nutri_menu_v1';
 const K_MENU_PLANS = 'lifeos_nutri_menu_plans_v1';
 let dbBody      = JSON.parse(localStorage.getItem(K_BODY)) || [];
-let dbMenuWeek  = JSON.parse(localStorage.getItem(K_MENU)) || {};   // { 'YYYY-Www': { mon:[],tue:[],... } }
 let dbMenuPlans = JSON.parse(localStorage.getItem(K_MENU_PLANS)) || [];
 let bodyMetric  = 'peso';
 let bodyChart   = null;
-let menuWeekOffset = 0;
 let menuAddDay  = null;
 
 function saveBody()      { localStorage.setItem(K_BODY, JSON.stringify(dbBody)); }
-function saveMenuWeek()  { localStorage.setItem(K_MENU, JSON.stringify(dbMenuWeek)); }
 function saveMenuPlans() { localStorage.setItem(K_MENU_PLANS, JSON.stringify(dbMenuPlans)); }
 
 function toggleBodyForm(){
@@ -1687,178 +1711,393 @@ function applyTDEE(){
     toast('✓ Objetivos actualizados');
 }
 
-/* ══ MENÚ SEMANAL ══ */
+/* ══ MENÚ SEMANAL — PROTOTIPOS ══ */
 const DAYS_MENU = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const DAYS_KEY  = ['mon','tue','wed','thu','fri','sat','sun'];
 const MEALS_MENU= ['Desayuno','Comida','Merienda','Cena'];
+const K_WEEK_ASSIGN = 'lifeos_nutri_week_assign_v1';
 
-function getMenuWeekKey(offset){
-    const d=new Date();
-    d.setDate(d.getDate()-d.getDay()+1+(offset*7));
-    return d.getFullYear()+'-W'+String(Math.ceil(d.getDate()/7)).padStart(2,'0')+'-'+d.getMonth();
-}
-function getMenuWeekStart(offset){
-    const d=new Date();
-    d.setDate(d.getDate()-((d.getDay()||7)-1)+(offset*7));
-    return d;
-}
+let dbWeekAssign = JSON.parse(localStorage.getItem(K_WEEK_ASSIGN)) || {}; // {'2026-W11': protoName}
+let currentProtoIdx = null; // index into dbMenuPlans currently being edited
 
-function changeMenuWeek(d){ menuWeekOffset+=d; renderMenuView(); }
+function saveWeekAssign() { localStorage.setItem(K_WEEK_ASSIGN, JSON.stringify(dbWeekAssign)); }
 
-function getMenuData(){
-    const key=getMenuWeekKey(menuWeekOffset);
-    if(!dbMenuWeek[key]) dbMenuWeek[key]={};
-    return dbMenuWeek[key];
+function getISOWeekKey() {
+    // Returns e.g. '2026-W11'
+    const d = new Date();
+    const jan4 = new Date(d.getFullYear(), 0, 4);
+    const w = Math.ceil(((d - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+    return d.getFullYear() + '-W' + String(w).padStart(2, '0');
 }
 
-function addDishToMenu(dayKey, meal){
-    menuAddDay={dayKey,meal};
-    // Show dish picker overlay
-    const overlay=document.getElementById('menu-dish-picker');
-    if(!overlay) return;
-    const allDishes=[...(typeof RECIPES_DB!=='undefined'?RECIPES_DB:[]),...(dbDishes||[])];
-    document.getElementById('menu-picker-list').innerHTML=allDishes.map((d,i)=>`
+function newMenuProto() {
+    const name = 'Semana ' + String.fromCharCode(65 + dbMenuPlans.length); // A, B, C...
+    dbMenuPlans.push({ name, data: {} });
+    saveMenuPlans();
+    currentProtoIdx = dbMenuPlans.length - 1;
+    renderMenuView();
+    setTimeout(() => {
+        const inp = document.getElementById('menu-proto-name');
+        if (inp) { inp.focus(); inp.select(); }
+    }, 50);
+}
+
+function selectProto(idx) {
+    currentProtoIdx = idx;
+    renderMenuView();
+}
+
+function saveCurrentProto() {
+    if (currentProtoIdx === null) return;
+    const name = (document.getElementById('menu-proto-name').value || '').trim();
+    if (!name) { toast('Escribe un nombre'); return; }
+    dbMenuPlans[currentProtoIdx].name = name;
+    saveMenuPlans();
+    renderMenuView();
+    toast('✓ Guardado');
+}
+
+function deleteCurrentProto() {
+    if (currentProtoIdx === null) return;
+    const name = dbMenuPlans[currentProtoIdx].name;
+    // Remove week assignments pointing to this proto
+    Object.keys(dbWeekAssign).forEach(k => { if (dbWeekAssign[k] === name) delete dbWeekAssign[k]; });
+    saveWeekAssign();
+    dbMenuPlans.splice(currentProtoIdx, 1);
+    saveMenuPlans();
+    currentProtoIdx = dbMenuPlans.length > 0 ? Math.min(currentProtoIdx, dbMenuPlans.length - 1) : null;
+    renderMenuView();
+    renderDiary();
+}
+
+function assignProtoToWeek() {
+    if (currentProtoIdx === null) return;
+    const wk = getISOWeekKey();
+    const protoName = dbMenuPlans[currentProtoIdx].name;
+    dbWeekAssign[wk] = protoName;
+    saveWeekAssign();
+    renderMenuView();
+    renderDiary();
+    toast('✓ "' + protoName + '" asignado a esta semana');
+}
+
+function getThisWeekProto() {
+    const wk = getISOWeekKey();
+    const name = dbWeekAssign[wk];
+    if (!name) return null;
+    return dbMenuPlans.find(p => p.name === name) || null;
+}
+
+function addDishToMenu(dayKey, meal) {
+    if (currentProtoIdx === null) return;
+    menuAddDay = { dayKey, meal };
+    const overlay = document.getElementById('menu-dish-picker');
+    if (!overlay) return;
+    const allDishes = [...(typeof RECIPES_DB !== 'undefined' ? RECIPES_DB : []), ...(dbDishes || [])];
+    document.getElementById('menu-picker-list').innerHTML = allDishes.map((d, i) => `
         <div onclick="selectMenuDish(${i},'${dayKey}','${meal}')"
             style="display:flex;align-items:center;gap:12px;padding:12px 16px;
             border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.1s"
             onmousedown="this.style.background='rgba(255,255,255,0.05)'" onmouseup="this.style.background=''">
             <div style="flex:1;min-width:0">
                 <div style="font-size:14px;font-weight:500;color:var(--text)">${d.name}</div>
-                <div style="font-size:11px;color:var(--dim);margin-top:1px">${d.cat||''} · ${Math.round(d.kcal)} kcal</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:1px">${d.cat || ''} · ${Math.round(d.kcal)} kcal</div>
             </div>
             <div style="font-size:12px;font-weight:600;color:var(--acc);flex-shrink:0">${Math.round(d.kcal)} kcal</div>
         </div>`).join('');
-    overlay.style.display='flex';
+    overlay.style.display = 'flex';
 }
 
-function selectMenuDish(idx, dayKey, meal){
-    const allDishes=[...(typeof RECIPES_DB!=='undefined'?RECIPES_DB:[]),...(dbDishes||[])];
-    const dish=allDishes[idx]; if(!dish) return;
-    const key=getMenuWeekKey(menuWeekOffset);
-    if(!dbMenuWeek[key]) dbMenuWeek[key]={};
-    if(!dbMenuWeek[key][dayKey]) dbMenuWeek[key][dayKey]={};
-    if(!dbMenuWeek[key][dayKey][meal]) dbMenuWeek[key][dayKey][meal]=[];
-    dbMenuWeek[key][dayKey][meal].push({name:dish.name,kcal:dish.kcal,p:dish.p,c:dish.c,f:dish.f});
-    saveMenuWeek();
-    document.getElementById('menu-dish-picker').style.display='none';
+function selectMenuDish(idx, dayKey, meal) {
+    if (currentProtoIdx === null) return;
+    const allDishes = [...(typeof RECIPES_DB !== 'undefined' ? RECIPES_DB : []), ...(dbDishes || [])];
+    const dish = allDishes[idx]; if (!dish) return;
+    const proto = dbMenuPlans[currentProtoIdx];
+    if (!proto.data[dayKey]) proto.data[dayKey] = {};
+    if (!proto.data[dayKey][meal]) proto.data[dayKey][meal] = [];
+    proto.data[dayKey][meal].push({ name: dish.name, kcal: dish.kcal, p: dish.p, c: dish.c, f: dish.f });
+    saveMenuPlans();
+    document.getElementById('menu-dish-picker').style.display = 'none';
     renderMenuView();
-    toast('✓ Añadido al menú');
+    toast('✓ Añadido al prototipo');
 }
 
-function removeMenuDish(dayKey, meal, idx){
-    const key=getMenuWeekKey(menuWeekOffset);
-    if(dbMenuWeek[key]&&dbMenuWeek[key][dayKey]&&dbMenuWeek[key][dayKey][meal]){
-        dbMenuWeek[key][dayKey][meal].splice(idx,1);
-        saveMenuWeek();
+function removeMenuDish(dayKey, meal, idx) {
+    if (currentProtoIdx === null) return;
+    const proto = dbMenuPlans[currentProtoIdx];
+    if (proto.data[dayKey] && proto.data[dayKey][meal]) {
+        proto.data[dayKey][meal].splice(idx, 1);
+        saveMenuPlans();
         renderMenuView();
     }
 }
 
-function saveMenuPlan(){
-    const name=document.getElementById('menu-name').value.trim();
-    if(!name){ toast('Escribe un nombre para el menú'); return; }
-    const key=getMenuWeekKey(menuWeekOffset);
-    const data=JSON.parse(JSON.stringify(dbMenuWeek[key]||{}));
-    // Check if plan with same name exists
-    const existing=dbMenuPlans.findIndex(p=>p.name===name);
-    if(existing>=0) dbMenuPlans[existing]={name,data,savedAt:new Date().toISOString().slice(0,10)};
-    else dbMenuPlans.push({name,data,savedAt:new Date().toISOString().slice(0,10)});
+/* Substitute a dish in the prototype */
+function substituteMenuDish(dayKey, meal, idx) {
+    if (currentProtoIdx === null) return;
+    menuAddDay = { dayKey, meal, replaceIdx: idx };
+    const overlay = document.getElementById('menu-dish-picker');
+    if (!overlay) return;
+    const allDishes = [...(typeof RECIPES_DB !== 'undefined' ? RECIPES_DB : []), ...(dbDishes || [])];
+    document.getElementById('menu-picker-list').innerHTML = allDishes.map((d, i) => `
+        <div onclick="replaceMenuDish(${i},'${dayKey}','${meal}',${idx})"
+            style="display:flex;align-items:center;gap:12px;padding:12px 16px;
+            border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.1s"
+            onmousedown="this.style.background='rgba(255,255,255,0.05)'" onmouseup="this.style.background=''">
+            <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:500;color:var(--text)">${d.name}</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:1px">${d.cat || ''} · ${Math.round(d.kcal)} kcal</div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--acc);flex-shrink:0">${Math.round(d.kcal)} kcal</div>
+        </div>`).join('');
+    overlay.style.display = 'flex';
+}
+
+function replaceMenuDish(newIdx, dayKey, meal, oldIdx) {
+    if (currentProtoIdx === null) return;
+    const allDishes = [...(typeof RECIPES_DB !== 'undefined' ? RECIPES_DB : []), ...(dbDishes || [])];
+    const dish = allDishes[newIdx]; if (!dish) return;
+    const proto = dbMenuPlans[currentProtoIdx];
+    proto.data[dayKey][meal][oldIdx] = { name: dish.name, kcal: dish.kcal, p: dish.p, c: dish.c, f: dish.f };
     saveMenuPlans();
+    document.getElementById('menu-dish-picker').style.display = 'none';
     renderMenuView();
-    toast('✓ Menú guardado como "'+name+'"');
+    toast('✓ Plato sustituido');
 }
 
-function loadMenuPlan(idx){
-    const plan=dbMenuPlans[idx]; if(!plan) return;
-    const key=getMenuWeekKey(menuWeekOffset);
-    dbMenuWeek[key]=JSON.parse(JSON.stringify(plan.data));
-    saveMenuWeek();
-    renderMenuView();
-    toast('✓ Menú "'+plan.name+'" cargado');
-}
+function renderMenuView() {
+    const chipsEl = document.getElementById('menu-proto-chips');
+    const editorEl = document.getElementById('menu-proto-editor');
+    const emptyEl  = document.getElementById('menu-empty-state');
 
-function deleteMenuPlan(idx){
-    dbMenuPlans.splice(idx,1);
-    saveMenuPlans();
-    renderMenuView();
-}
-
-function renderMenuView(){
-    const weekStart=getMenuWeekStart(menuWeekOffset);
-    const weekEnd=new Date(weekStart); weekEnd.setDate(weekEnd.getDate()+6);
-    const MONTHS_S=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    document.getElementById('menu-week-label').textContent=
-        weekStart.getDate()+' '+MONTHS_S[weekStart.getMonth()]+' – '+weekEnd.getDate()+' '+MONTHS_S[weekEnd.getMonth()];
-
-    const data=getMenuData();
-    let weekKcal=0;
-
-    // Plans row
-    const plansRow=document.getElementById('menu-plans-row');
-    if(plansRow){
-        if(dbMenuPlans.length){
-            plansRow.innerHTML=`<div style="font-size:11px;font-weight:600;color:var(--dim);display:flex;align-items:center;white-space:nowrap;flex-shrink:0">Guardados:</div>`+
-            dbMenuPlans.map((p,i)=>`
-                <div style="flex:0 0 auto;display:flex;align-items:center;gap:4px;
-                    background:var(--s2);border:1px solid var(--border);border-radius:99px;
-                    padding:4px 10px 4px 12px;font-size:11px;white-space:nowrap">
-                    <span onclick="loadMenuPlan(${i})" style="cursor:pointer;color:var(--text);font-weight:600">${p.name}</span>
-                    <button onclick="deleteMenuPlan(${i})" style="color:var(--dim);background:none;border:none;font-size:11px;cursor:pointer;padding:0 2px">✕</button>
-                </div>`).join('');
+    // Proto chips
+    if (chipsEl) {
+        if (!dbMenuPlans.length) {
+            chipsEl.innerHTML = '<span style="font-size:12px;color:var(--dim)">Sin prototipos</span>';
         } else {
-            plansRow.innerHTML='';
+            chipsEl.innerHTML = dbMenuPlans.map((p, i) => `
+                <div onclick="selectProto(${i})"
+                    style="flex:0 0 auto;padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;
+                    border:1px solid ${i === currentProtoIdx ? 'rgba(82,183,136,0.4)' : 'var(--border)'};
+                    background:${i === currentProtoIdx ? 'rgba(82,183,136,0.1)' : 'transparent'};
+                    color:${i === currentProtoIdx ? 'var(--acc)' : 'var(--sub)'};
+                    cursor:pointer;white-space:nowrap;transition:all 0.12s">${p.name}</div>`).join('');
         }
     }
 
+    // Show/hide editor
+    const hasProto = currentProtoIdx !== null && dbMenuPlans[currentProtoIdx];
+    if (editorEl) editorEl.style.display = hasProto ? 'block' : 'none';
+    if (emptyEl)  emptyEl.style.display  = (!hasProto && !dbMenuPlans.length) ? 'block' : 'none';
+    if (!hasProto) return;
+
+    const proto = dbMenuPlans[currentProtoIdx];
+
+    // Proto name input
+    const nameInp = document.getElementById('menu-proto-name');
+    if (nameInp && nameInp !== document.activeElement) nameInp.value = proto.name;
+
+    // Assign row
+    const wk = getISOWeekKey();
+    const assignedName = dbWeekAssign[wk];
+    const isAssigned = assignedName === proto.name;
+    const assignLbl = document.getElementById('menu-assign-label');
+    const assignSub = document.getElementById('menu-assign-sub');
+    const assignBtn = document.getElementById('menu-assign-btn');
+    const MONTHS_S = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const ws = new Date(); ws.setDate(ws.getDate() - ((ws.getDay() || 7) - 1));
+    const we = new Date(ws); we.setDate(we.getDate() + 6);
+    if (assignLbl) assignLbl.textContent = 'Semana ' + ws.getDate() + ' ' + MONTHS_S[ws.getMonth()] + ' – ' + we.getDate() + ' ' + MONTHS_S[we.getMonth()];
+    if (assignSub) assignSub.textContent = isAssigned ? '✓ Este prototipo está asignado a esta semana' : (assignedName ? 'Asignado: ' + assignedName : 'Sin prototipo asignado');
+    if (assignBtn) {
+        assignBtn.textContent = isAssigned ? 'Asignado ✓' : 'Asignar a esta semana';
+        assignBtn.style.background = isAssigned ? 'rgba(82,183,136,0.15)' : 'rgba(91,138,240,0.15)';
+        assignBtn.style.color = isAssigned ? 'var(--acc)' : 'var(--blue)';
+        assignBtn.style.borderColor = isAssigned ? 'rgba(82,183,136,0.25)' : 'rgba(91,138,240,0.25)';
+    }
+
     // Days grid
-    const grid=document.getElementById('menu-days-grid');
-    grid.innerHTML=DAYS_KEY.map((dk,di)=>{
-        const dayData=data[dk]||{};
-        let dayKcal=0;
-        MEALS_MENU.forEach(m=>{ (dayData[m]||[]).forEach(d=>dayKcal+=d.kcal||0); });
-        weekKcal+=dayKcal;
-        const today=new Date(); const todayDow=(today.getDay()||7)-1;
-        const isToday=menuWeekOffset===0&&di===todayDow;
+    const data = proto.data || {};
+    let weekKcal = 0;
+    const grid = document.getElementById('menu-days-grid');
+    grid.innerHTML = DAYS_KEY.map((dk, di) => {
+        const dayData = data[dk] || {};
+        let dayKcal = 0;
+        MEALS_MENU.forEach(m => { (dayData[m] || []).forEach(d => dayKcal += d.kcal || 0); });
+        weekKcal += dayKcal;
 
         return `
-        <div style="background:var(--s1);border:1px solid ${isToday?'rgba(82,183,136,0.4)':'var(--border)'};
+        <div style="background:var(--s1);border:1px solid var(--border);
             border-radius:16px;margin-bottom:8px;overflow:hidden">
             <div style="display:flex;align-items:center;justify-content:space-between;
-                padding:12px 14px;border-bottom:1px solid var(--border);
-                background:${isToday?'rgba(82,183,136,0.06)':'transparent'}">
-                <div style="font-size:14px;font-weight:700;color:${isToday?'var(--acc)':'var(--text)'}">
-                    ${DAYS_MENU[di]}${isToday?' · Hoy':''}
-                </div>
-                <div style="font-size:12px;font-weight:600;color:${dayKcal>0?'var(--acc)':'var(--dim)'}">
-                    ${dayKcal>0?Math.round(dayKcal)+' kcal':''}
+                padding:12px 14px;border-bottom:1px solid var(--border)">
+                <div style="font-size:14px;font-weight:700;color:var(--text)">${DAYS_MENU[di]}</div>
+                <div style="font-size:12px;font-weight:600;color:${dayKcal > 0 ? 'var(--acc)' : 'var(--dim)'}">
+                    ${dayKcal > 0 ? Math.round(dayKcal) + ' kcal' : ''}
                 </div>
             </div>
-            ${MEALS_MENU.map(meal=>{
-                const dishes=dayData[meal]||[];
+            ${MEALS_MENU.map(meal => {
+                const dishes = dayData[meal] || [];
                 return `
                 <div style="border-bottom:1px solid rgba(255,255,255,0.03)">
-                    <div style="display:flex;align-items:center;justify-content:space-between;
-                        padding:8px 14px 4px">
-                        <div style="font-size:10px;font-weight:700;color:var(--dim);
-                            text-transform:uppercase;letter-spacing:0.5px">${meal}</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px">
+                        <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px">${meal}</div>
                         <button onclick="addDishToMenu('${dk}','${meal}')"
                             style="font-size:11px;font-weight:600;color:var(--acc);background:none;
                             border:none;cursor:pointer;font-family:'DM Sans',sans-serif">+ añadir</button>
                     </div>
-                    ${dishes.length?dishes.map((d,i)=>`
-                    <div style="display:flex;align-items:center;gap:8px;padding:4px 14px 6px">
-                        <div style="flex:1;font-size:13px;color:var(--text)">${d.name}</div>
+                    ${dishes.length ? dishes.map((d, i) => `
+                    <div style="display:flex;align-items:center;gap:6px;padding:4px 14px 6px">
+                        <div style="flex:1;font-size:13px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
                         <div style="font-size:11px;color:var(--sub);flex-shrink:0">${Math.round(d.kcal)} kcal</div>
+                        <button onclick="substituteMenuDish('${dk}','${meal}',${i})"
+                            title="Sustituir"
+                            style="color:var(--blue);background:none;border:none;font-size:12px;cursor:pointer;flex-shrink:0">⇄</button>
                         <button onclick="removeMenuDish('${dk}','${meal}',${i})"
-                            style="color:var(--dim);background:none;border:none;font-size:11px;cursor:pointer">✕</button>
+                            style="color:var(--dim);background:none;border:none;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>
                     </div>`).join('')
-                    :`<div style="padding:4px 14px 8px;font-size:12px;color:var(--dim)">—</div>`}
+                    : `<div style="padding:4px 14px 8px;font-size:12px;color:var(--dim)">—</div>`}
                 </div>`;
             }).join('')}
         </div>`;
     }).join('');
 
-    document.getElementById('menu-week-kcal').textContent=weekKcal>0?Math.round(weekKcal)+' kcal esta semana':'Sin platos añadidos';
+    const kcalEl = document.getElementById('menu-week-kcal');
+    if (kcalEl) kcalEl.textContent = weekKcal > 0 ? Math.round(weekKcal) + ' kcal totales en el prototipo' : '';
+}
+
+/* ══ DIARY — MENÚ PROPUESTO ══ */
+function renderDiaryMenuProposal() {
+    const el = document.getElementById('diary-menu-proposal');
+    if (!el) return;
+
+    const proto = getThisWeekProto();
+    if (!proto) { el.style.display = 'none'; return; }
+
+    const todayDow = (new Date().getDay() || 7) - 1;
+    const dk = DAYS_KEY[todayDow];
+    const dayData = (proto.data || {})[dk] || {};
+
+    const hasMeals = MEALS_MENU.some(m => (dayData[m] || []).length > 0);
+    if (!hasMeals) { el.style.display = 'none'; return; }
+
+    el.style.display = 'block';
+    el.innerHTML = `
+        <div style="background:var(--s1);border:1px solid rgba(82,183,136,0.2);border-radius:16px;overflow:hidden;margin-bottom:0">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+                <div style="flex:1">
+                    <div style="font-size:12px;font-weight:700;color:var(--acc);letter-spacing:0.3px">MENÚ PROPUESTO HOY</div>
+                    <div style="font-size:11px;color:var(--dim);margin-top:1px">${proto.name}</div>
+                </div>
+                <button onclick="confirmAllMenuMeals('${dk}')"
+                    style="padding:6px 14px;border-radius:8px;background:var(--acc);color:#111;
+                    border:none;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;
+                    cursor:pointer;white-space:nowrap;flex-shrink:0">Confirmar todo</button>
+            </div>
+            ${MEALS_MENU.map(meal => {
+                const dishes = dayData[meal] || [];
+                if (!dishes.length) return '';
+                return `
+                <div style="border-bottom:1px solid rgba(255,255,255,0.03)">
+                    <div style="padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px">${meal}</div>
+                    ${dishes.map((d, i) => `
+                    <div style="display:flex;align-items:center;gap:8px;padding:5px 16px 7px">
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
+                            <div style="font-size:11px;color:var(--sub);margin-top:1px">${Math.round(d.kcal)} kcal · P:${Math.round(d.p||0)}g C:${Math.round(d.c||0)}g G:${Math.round(d.f||0)}g</div>
+                        </div>
+                        <div style="display:flex;gap:4px;flex-shrink:0">
+                            <button onclick="confirmProposedDish('${dk}','${meal}',${i})"
+                                title="Confirmar"
+                                style="width:30px;height:30px;border-radius:8px;background:rgba(82,183,136,0.12);
+                                color:var(--acc);border:1px solid rgba(82,183,136,0.25);font-size:14px;
+                                display:flex;align-items:center;justify-content:center;cursor:pointer">✓</button>
+                            <button onclick="editProposedQty('${dk}','${meal}',${i})"
+                                title="Modificar cantidad"
+                                style="width:30px;height:30px;border-radius:8px;background:rgba(201,168,76,0.1);
+                                color:var(--yellow);border:1px solid rgba(201,168,76,0.2);font-size:12px;
+                                display:flex;align-items:center;justify-content:center;cursor:pointer">×</button>
+                            <button onclick="substituteProposedDish('${dk}','${meal}',${i})"
+                                title="Sustituir"
+                                style="width:30px;height:30px;border-radius:8px;background:rgba(91,138,240,0.1);
+                                color:var(--blue);border:1px solid rgba(91,138,240,0.2);font-size:12px;
+                                display:flex;align-items:center;justify-content:center;cursor:pointer">⇄</button>
+                        </div>
+                    </div>`).join('')}
+                </div>`;
+            }).join('')}
+        </div>`;
+}
+
+function confirmProposedDish(dayKey, meal, idx) {
+    const proto = getThisWeekProto();
+    if (!proto) return;
+    const dish = (proto.data[dayKey] || {})[meal]?.[idx];
+    if (!dish) return;
+    addFood({ name: dish.name, kcal: dish.kcal, p: dish.p, c: dish.c, f: dish.f });
+    toast('✓ ' + dish.name + ' añadido al diario');
+}
+
+function confirmAllMenuMeals(dayKey) {
+    const proto = getThisWeekProto();
+    if (!proto) return;
+    const dayData = (proto.data || {})[dayKey] || {};
+    let count = 0;
+    MEALS_MENU.forEach(meal => {
+        (dayData[meal] || []).forEach(dish => {
+            addFood({ name: dish.name, kcal: dish.kcal, p: dish.p, c: dish.c, f: dish.f });
+            count++;
+        });
+    });
+    if (count) toast('✓ ' + count + ' platos añadidos al diario');
+}
+
+function editProposedQty(dayKey, meal, idx) {
+    const proto = getThisWeekProto();
+    if (!proto) return;
+    const dish = (proto.data[dayKey] || {})[meal]?.[idx];
+    if (!dish) return;
+    const mult = parseFloat(prompt(`Cantidad para "${dish.name}" (ej: 0.5 para media ración, 2 para doble):`, '1'));
+    if (!mult || mult <= 0) return;
+    addFood({
+        name: dish.name + (mult !== 1 ? ' ×' + mult : ''),
+        kcal: Math.round(dish.kcal * mult),
+        p:    Math.round((dish.p || 0) * mult),
+        c:    Math.round((dish.c || 0) * mult),
+        f:    Math.round((dish.f || 0) * mult),
+    });
+    toast('✓ Añadido con cantidad ×' + mult);
+}
+
+function substituteProposedDish(dayKey, meal, idx) {
+    // Store target and show picker
+    _diarySubTarget = { dayKey, meal, idx };
+    const overlay = document.getElementById('menu-dish-picker');
+    if (!overlay) return;
+    const allDishes = [...(typeof RECIPES_DB !== 'undefined' ? RECIPES_DB : []), ...(dbDishes || [])];
+    document.getElementById('menu-picker-list').innerHTML = allDishes.map((d, i) => `
+        <div onclick="confirmSubstitution(${i})"
+            style="display:flex;align-items:center;gap:12px;padding:12px 16px;
+            border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.1s"
+            onmousedown="this.style.background='rgba(255,255,255,0.05)'" onmouseup="this.style.background=''">
+            <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:500;color:var(--text)">${d.name}</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:1px">${d.cat || ''} · ${Math.round(d.kcal)} kcal</div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--acc);flex-shrink:0">${Math.round(d.kcal)} kcal</div>
+        </div>`).join('');
+    overlay.style.display = 'flex';
+}
+
+let _diarySubTarget = null;
+function confirmSubstitution(dishIdx) {
+    if (!_diarySubTarget) return;
+    const allDishes = [...(typeof RECIPES_DB !== 'undefined' ? RECIPES_DB : []), ...(dbDishes || [])];
+    const dish = allDishes[dishIdx]; if (!dish) return;
+    addFood({ name: dish.name, kcal: dish.kcal, p: dish.p, c: dish.c, f: dish.f });
+    document.getElementById('menu-dish-picker').style.display = 'none';
+    _diarySubTarget = null;
+    toast('✓ ' + dish.name + ' añadido al diario');
 }
 
 // Dish picker overlay (append to body)
