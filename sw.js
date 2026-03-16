@@ -1,7 +1,7 @@
 // Life OS — Service Worker
 // Permite instalación como PWA y uso offline básico
 
-const CACHE_NAME = 'lifeos-v1';
+const CACHE_NAME = 'lifeos-20260316-2006';
 const ASSETS = [
     '/LifeRPG/',
     '/LifeRPG/index.html',
