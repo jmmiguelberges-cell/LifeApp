@@ -202,6 +202,18 @@
         .run-stat-lbl { font-size:10px; font-weight:600; color:var(--dim);
             text-transform:uppercase; letter-spacing:0.5px; margin-top:3px; }
         /* ── MOBILITY ── */
+
+        /* MOB TAB BTNS */
+        .mob-tab-btn {
+            flex:1; padding:8px 4px; border-radius:10px; font-size:11px; font-weight:700;
+            background:var(--s2); color:var(--dim); border:1px solid var(--border);
+            font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.15s;
+        }
+        .mob-tab-active {
+            background:rgba(155,127,224,0.15) !important;
+            color:var(--purple) !important;
+            border-color:rgba(155,127,224,0.3) !important;
+        }
         .mob-card {
             background:var(--s1); border:1px solid var(--border);
             border-radius:16px; overflow:hidden; margin-bottom:10px;
@@ -569,19 +581,35 @@
 
 <div class="page-header s0">
     <div class="page-module">Físico</div>
-    <div class="page-title">Entrenamiento</div>
-    <div class="tab-bar">
+    <div class="page-title" id="fisico-title">Fuerza</div>
+    <!-- Main section selector -->
+    <div style="display:flex;gap:8px;margin-bottom:0;padding-bottom:0">
+        <button onclick="switchSection('strength')" id="sec-strength"
+            style="flex:1;padding:9px 4px;border-radius:12px;font-size:13px;font-weight:700;
+            background:rgba(224,122,95,0.15);color:var(--acc);border:1px solid rgba(224,122,95,0.3);
+            font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">💪 Fuerza</button>
+        <button onclick="switchSection('running')" id="sec-running"
+            style="flex:1;padding:9px 4px;border-radius:12px;font-size:13px;font-weight:700;
+            background:transparent;color:var(--dim);border:1px solid var(--border);
+            font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">🏃 Running</button>
+        <button onclick="switchSection('mobility')" id="sec-mobility"
+            style="flex:1;padding:9px 4px;border-radius:12px;font-size:13px;font-weight:700;
+            background:transparent;color:var(--dim);border:1px solid var(--border);
+            font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">🧘 Movilidad</button>
+    </div>
+    <!-- Sub tabs (only shown for strength) -->
+    <div class="tab-bar" id="strength-tabs" style="margin-top:2px">
         <button class="tab-btn active" onclick="switchTab('today',this)">Hoy</button>
         <button class="tab-btn" onclick="switchTab('history',this)">Historial</button>
         <button class="tab-btn" onclick="switchTab('routines',this)">Rutinas</button>
         <button class="tab-btn" onclick="switchTab('library',this)">Ejercicios</button>
         <button class="tab-btn" onclick="switchTab('progress',this)">Progreso</button>
-        <button class="tab-btn" onclick="switchTab('running',this)">Running</button>
-        <button class="tab-btn" onclick="switchTab('mobility',this)">Movilidad</button>
     </div>
 </div>
 
 <div id="sw">
+<div id="section-strength">
+
 
     <!-- ═══ HOY ═══ -->
     <div id="view-today" class="view active s1">
@@ -729,6 +757,9 @@
     </div>
 
 
+</div>
+
+<div id="section-running" style="display:none">
     <!-- ════ RUNNING ════ -->
     <div id="view-running" class="view s1">
 
@@ -828,108 +859,127 @@
         </div>
     </div>
 
+</div>
+
+<div id="section-mobility" style="display:none">
     <!-- ════ MOVILIDAD ════ -->
-    <div id="view-mobility" class="view s1">
+    <div id="view-mobility" class="view active s1">
 
-        <!-- Stats hoy -->
-        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-                <div>
-                    <div class="sec-label" style="margin-bottom:4px">Sesión de hoy</div>
-                    <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--purple);line-height:1">
-                        <span id="mob-done-today">0</span>
-                        <span style="font-size:16px;color:var(--sub)"> / <span id="mob-total-today">0</span></span>
-                    </div>
-                    <div style="font-size:11px;color:var(--dim);margin-top:2px">ejercicios completados</div>
-                </div>
-                <div style="text-align:right">
-                    <button onclick="switchMobTab('session')" id="mob-btn-session"
-                        style="display:block;margin-bottom:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;
-                        background:rgba(155,127,224,0.15);color:var(--purple);border:1px solid rgba(155,127,224,0.25);
-                        font-family:'DM Sans',sans-serif;cursor:pointer">Iniciar sesión</button>
-                    <button onclick="switchMobTab('builder')" id="mob-btn-builder"
-                        style="display:block;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;
-                        background:var(--s2);color:var(--dim);border:1px solid var(--border);
-                        font-family:'DM Sans',sans-serif;cursor:pointer">Crear rutina</button>
-                </div>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden">
-                <div id="mob-progress-bar" style="height:100%;background:linear-gradient(90deg,#9b7fe0,#52b788);border-radius:99px;width:0%;transition:width 0.5s ease"></div>
-            </div>
-        </div>
-
-        <!-- Sub-tabs -->
+        <!-- Sub-tabs movilidad -->
         <div style="display:flex;gap:6px;margin-bottom:12px">
-            <button onclick="switchMobTab('session')" id="mob-tab-session"
-                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
-                background:rgba(155,127,224,0.15);color:var(--purple);border:1px solid rgba(155,127,224,0.25);
-                font-family:'DM Sans',sans-serif;transition:all 0.15s">🧘 Sesión</button>
-            <button onclick="switchMobTab('library')" id="mob-tab-library"
-                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
-                background:var(--s2);color:var(--dim);border:1px solid var(--border);
-                font-family:'DM Sans',sans-serif;transition:all 0.15s">📚 Biblioteca</button>
-            <button onclick="switchMobTab('builder')" id="mob-tab-builder"
-                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
-                background:var(--s2);color:var(--dim);border:1px solid var(--border);
-                font-family:'DM Sans',sans-serif;transition:all 0.15s">🛠 Rutinas</button>
-            <button onclick="switchMobTab('history')" id="mob-tab-history"
-                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
-                background:var(--s2);color:var(--dim);border:1px solid var(--border);
-                font-family:'DM Sans',sans-serif;transition:all 0.15s">📊 Historial</button>
+            <button onclick="mobSwitchTab('session')" id="mob-tab-session"
+                class="mob-tab-btn mob-tab-active">🧘 Sesión</button>
+            <button onclick="mobSwitchTab('routines')" id="mob-tab-routines"
+                class="mob-tab-btn">📋 Rutinas</button>
+            <button onclick="mobSwitchTab('library')" id="mob-tab-library"
+                class="mob-tab-btn">📚 Biblioteca</button>
+            <button onclick="mobSwitchTab('history')" id="mob-tab-history"
+                class="mob-tab-btn">📊 Historial</button>
         </div>
 
-        <!-- SESSION -->
+        <!-- ── SESIÓN ── -->
         <div id="mob-view-session">
-            <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                    <div class="sec-label" style="margin-bottom:0">Rutina activa</div>
-                    <select class="inp" id="mob-routine-sel" onchange="loadMobRoutine()" style="margin-bottom:0;max-width:160px;font-size:12px">
-                        <option value="">— Sin rutina —</option>
-                    </select>
+            <!-- Selector de rutina + iniciar -->
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+                <div class="sec-label" style="margin-bottom:10px">Elegir rutina</div>
+                <select class="inp" id="mob-routine-sel" style="margin-bottom:10px">
+                    <option value="">— Selecciona una rutina —</option>
+                </select>
+                <button onclick="startMobSession()" class="btn-primary"
+                    style="background:rgba(155,127,224,0.15);color:var(--purple);border:1px solid rgba(155,127,224,0.3)">
+                    ▶ Iniciar sesión
+                </button>
+            </div>
+
+            <!-- Sesión activa (solo cuando hay una iniciada) -->
+            <div id="mob-active-session" style="display:none">
+                <div style="background:var(--s1);border:1px solid rgba(155,127,224,0.3);border-radius:16px;overflow:hidden;margin-bottom:12px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">
+                        <div>
+                            <div style="font-size:14px;font-weight:700;color:var(--text)" id="mob-sess-name">Sesión libre</div>
+                            <div style="font-size:11px;color:var(--dim);margin-top:2px">
+                                <span id="mob-done-count" style="color:var(--purple);font-weight:700">0</span>
+                                / <span id="mob-total-count">0</span> ejercicios
+                            </div>
+                        </div>
+                        <button onclick="cancelMobSession()"
+                            style="padding:7px 14px;border-radius:9px;background:rgba(224,95,95,0.08);
+                            color:var(--red);border:1px solid rgba(224,95,95,0.2);font-size:12px;
+                            font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Cancelar</button>
+                    </div>
+                    <div style="height:4px;background:rgba(255,255,255,0.05)">
+                        <div id="mob-sess-bar" style="height:100%;background:linear-gradient(90deg,#9b7fe0,#52b788);width:0%;transition:width 0.4s ease"></div>
+                    </div>
+                    <div id="mob-session-exercises"></div>
+                    <div style="padding:12px 16px;border-top:1px solid var(--border)">
+                        <button onclick="finishMobSession()" class="btn-primary" style="margin-bottom:0">✓ Guardar sesión</button>
+                    </div>
                 </div>
-                <div id="mob-session-list"></div>
-                <button onclick="finishMobSession()" class="btn-primary" style="margin-top:8px;background:rgba(155,127,224,0.15);color:var(--purple);border:1px solid rgba(155,127,224,0.25)">✓ Guardar sesión</button>
             </div>
         </div>
 
-        <!-- LIBRARY -->
+        <!-- ── RUTINAS ── -->
+        <div id="mob-view-routines" style="display:none">
+            <!-- Crear nueva rutina -->
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                    <div class="sec-label" style="margin-bottom:0">Nueva rutina</div>
+                    <button onclick="toggleMobBuilder()" id="mob-builder-toggle"
+                        style="font-size:11px;font-weight:600;color:var(--dim);background:none;border:none;font-family:'DM Sans',sans-serif;cursor:pointer">Expandir ↓</button>
+                </div>
+                <div id="mob-builder-form" style="display:none">
+                    <input class="inp" id="mob-rtn-name" type="text" placeholder="Nombre de la rutina...">
+                    <select class="inp" id="mob-rtn-focus">
+                        <option value="full">🔄 Cuerpo completo</option>
+                        <option value="upper">💪 Tren superior</option>
+                        <option value="lower">🦵 Tren inferior</option>
+                        <option value="spine">🔃 Columna y core</option>
+                        <option value="hips">🍑 Caderas</option>
+                        <option value="shoulders">🤸 Hombros</option>
+                        <option value="morning">☀️ Rutina matutina</option>
+                        <option value="night">🌙 Rutina nocturna</option>
+                    </select>
+                    <div style="font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+                        Ejercicios añadidos (<span id="mob-builder-count">0</span>)
+                    </div>
+                    <div id="mob-builder-list" style="margin-bottom:10px"></div>
+                    <button onclick="mobSwitchTab('library');mobPickingForBuilder=true;renderMobLibrary()"
+                        style="width:100%;padding:10px;border-radius:10px;background:rgba(155,127,224,0.08);
+                        color:var(--purple);border:1px solid rgba(155,127,224,0.2);font-size:13px;
+                        font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-bottom:8px">
+                        + Añadir desde biblioteca
+                    </button>
+                    <button onclick="saveMobRoutine()" class="btn-primary">Guardar rutina</button>
+                </div>
+            </div>
+
+            <!-- Lista de rutinas guardadas -->
+            <div class="sec-label">Mis rutinas</div>
+            <div id="mob-routines-list"></div>
+        </div>
+
+        <!-- ── BIBLIOTECA ── -->
         <div id="mob-view-library" style="display:none">
+            <div id="mob-pick-banner" style="display:none;background:rgba(155,127,224,0.1);border:1px solid rgba(155,127,224,0.25);border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px;color:var(--purple);font-weight:600">
+                ← Toca un ejercicio para añadirlo a tu rutina
+            </div>
             <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px;-webkit-overflow-scrolling:touch" id="mob-cat-chips"></div>
             <div id="mob-library-list"></div>
         </div>
 
-        <!-- BUILDER -->
-        <div id="mob-view-builder" style="display:none">
-            <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px">
-                <div class="sec-label" style="margin-bottom:12px">Nueva rutina de movilidad</div>
-                <input class="inp" id="mob-rtn-name" type="text" placeholder="Nombre de la rutina (ej: Movilidad matutina)">
-                <select class="inp" id="mob-rtn-focus">
-                    <option value="full">🔄 Cuerpo completo</option>
-                    <option value="upper">💪 Tren superior</option>
-                    <option value="lower">🦵 Tren inferior</option>
-                    <option value="spine">🔃 Columna y core</option>
-                    <option value="hips">🍑 Caderas y glúteos</option>
-                    <option value="shoulders">🤸 Hombros y pecho</option>
-                    <option value="morning">☀️ Rutina matutina</option>
-                    <option value="night">🌙 Rutina nocturna</option>
-                </select>
-                <div style="font-size:12px;color:var(--sub);margin-bottom:8px">Añade ejercicios desde la biblioteca</div>
-                <div id="mob-builder-list" style="margin-bottom:10px"></div>
-                <button onclick="openMobLibraryForBuilder()" style="width:100%;padding:10px;border-radius:10px;background:rgba(155,127,224,0.08);color:var(--purple);border:1px solid rgba(155,127,224,0.2);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-bottom:8px">+ Añadir ejercicio</button>
-                <button onclick="saveMobRoutine()" class="btn-primary">Guardar rutina</button>
-            </div>
-            <div class="sec-label">Mis rutinas guardadas</div>
-            <div id="mob-routines-list"></div>
-        </div>
-
-        <!-- HISTORY -->
+        <!-- ── HISTORIAL ── -->
         <div id="mob-view-history" style="display:none">
-            <div class="stat-grid" style="margin-bottom:12px" id="mob-hist-stats"></div>
+            <div class="stat-grid" style="margin-bottom:12px" id="mob-hist-stats">
+                <div class="stat-tile"><div class="stat-label">Sesiones</div><div class="stat-val" id="mob-stat-total" style="color:var(--purple)">0</div></div>
+                <div class="stat-tile"><div class="stat-label">Esta semana</div><div class="stat-val" id="mob-stat-week" style="color:var(--green)">0</div></div>
+                <div class="stat-tile"><div class="stat-label">Ejercicios</div><div class="stat-val" id="mob-stat-exs" style="color:var(--acc)">0</div></div>
+            </div>
             <div class="sec-label">Sesiones recientes</div>
             <div id="mob-history-list"></div>
         </div>
-    </div>
 
+    </div>
+</div>
 </div>
 
 <nav class="nav-bar">
@@ -987,6 +1037,7 @@ const K_ACTIVE   = 'lifeos_active_v1';
 const now      = new Date();
 const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
+let currentSection = 'strength';
 let dbSessions  = JSON.parse(localStorage.getItem(K_SESSIONS))  || [];
 let dbRoutines  = JSON.parse(localStorage.getItem(K_ROUTINES))  || [];
 let dbExercises = JSON.parse(localStorage.getItem(K_EXERCISES)) || null;
@@ -1899,6 +1950,7 @@ function saveEditedRoutine() {
 
 /* ── INIT ── */
 refreshRoutinePicker();
+switchSection('strength');  // init section switcher
 
 // Splash screen
 (function() {
@@ -2154,171 +2206,327 @@ function renderRunning() {
     if (runDateEl && !runDateEl.value) runDateEl.value = todayStr;
 }
 
+
 /* ════════════════════════════════════════
-   MOVILIDAD
+   SECTION SWITCHER (Fuerza / Running / Movilidad)
 ════════════════════════════════════════ */
-const K_MOB_SESS    = 'lifeos_mob_sessions_v1';
-const K_MOB_ROUTINES= 'lifeos_mob_routines_v1';
+function switchSection(sec) {
+    currentSection = sec;
+    // Hide all sections
+    ['strength','running','mobility'].forEach(s => {
+        const el = document.getElementById('section-'+s);
+        if (el) el.style.display = 'none';
+    });
+    // Show selected
+    const sel = document.getElementById('section-'+sec);
+    if (sel) sel.style.display = 'block';
 
-let dbMobSessions = JSON.parse(localStorage.getItem(K_MOB_SESS))     || [];
-let dbMobRoutines = JSON.parse(localStorage.getItem(K_MOB_ROUTINES)) || [];
-let mobBuilderList= [];
-let mobActiveSess = {};  // { exName: {done: bool, sets completed} }
-let mobActiveCat  = 'Todos';
-let mobSubView    = 'session';
-let mobForBuilder = false;
+    // Update section buttons
+    const configs = {
+        strength: { color:'#e07a5f', label:'Fuerza' },
+        running:  { color:'#5b8af0', label:'Running' },
+        mobility: { color:'#9b7fe0', label:'Movilidad' },
+    };
+    ['strength','running','mobility'].forEach(s => {
+        const btn = document.getElementById('sec-'+s);
+        if (!btn) return;
+        const active = s === sec;
+        const cfg    = configs[s];
+        btn.style.background   = active ? cfg.color+'26' : 'transparent';
+        btn.style.color        = active ? cfg.color : 'var(--dim)';
+        btn.style.borderColor  = active ? cfg.color+'55' : 'var(--border)';
+    });
 
-function saveMobSessions() { localStorage.setItem(K_MOB_SESS, JSON.stringify(dbMobSessions)); }
-function saveMobRoutines() { localStorage.setItem(K_MOB_ROUTINES, JSON.stringify(dbMobRoutines)); }
+    // Update page title
+    const titleEl = document.getElementById('fisico-title');
+    if (titleEl) titleEl.textContent = configs[sec].label;
+
+    // Show/hide sub-tabs
+    const subTabs = document.getElementById('strength-tabs');
+    if (subTabs) subTabs.style.display = sec==='strength' ? 'flex' : 'none';
+
+    // Render section
+    if (sec==='running')  renderRunning();
+    if (sec==='mobility') { mobSwitchTab('session'); renderMobRoutinesList(); renderMobHistory(); }
+}
+
+/* ════════════════════════════════════════
+   MOVILIDAD — rewrite
+════════════════════════════════════════ */
+const K_MOB_SESS     = 'lifeos_mob_sessions_v1';
+const K_MOB_ROUTINES = 'lifeos_mob_routines_v1';
+
+let dbMobSessions   = JSON.parse(localStorage.getItem(K_MOB_SESS))      || [];
+let dbMobRoutines   = JSON.parse(localStorage.getItem(K_MOB_ROUTINES))  || [];
+let mobBuilderList  = [];
+let mobActiveSess   = null;  // null = no active session, obj = active session exercises
+let mobActiveCat    = 'Todos';
+let mobPickingForBuilder = false;
+let mobBuilderOpen  = false;
+
+function saveMobSessions()  { localStorage.setItem(K_MOB_SESS,      JSON.stringify(dbMobSessions)); }
+function saveMobRoutines()  { localStorage.setItem(K_MOB_ROUTINES,  JSON.stringify(dbMobRoutines)); }
 
 const MOB_LIBRARY = [
-    // Caderas
-    { name:'Apertura de cadera 90/90', cat:'Caderas', sets:2, duration:60, side:true,
-      desc:'Siéntate con ambas piernas en 90°. Inclínate hacia delante manteniendo la espalda recta.' },
-    { name:'Paloma tumbado', cat:'Caderas', sets:2, duration:60, side:true,
-      desc:'Tumbado boca arriba, cruza el tobillo sobre la rodilla opuesta y empuja suavemente.' },
-    { name:'Lunge con rotación', cat:'Caderas', sets:2, duration:45, side:true,
-      desc:'En posición de zancada, rota el tronco hacia la pierna delantera.' },
-    { name:'Hip flexor stretch', cat:'Caderas', sets:2, duration:60, side:true,
-      desc:'Rodilla en el suelo, empuja la cadera hacia delante. Mantén el glúteo contraído.' },
-    { name:'Frog stretch', cat:'Caderas', sets:2, duration:90, side:false,
-      desc:'De rodillas con las piernas abiertas en V, abre progresivamente hacia los lados.' },
-    // Columna
-    { name:'Cat-Cow', cat:'Columna', sets:3, reps:10,
-      desc:'A cuatro patas, alterna arquear y redondear la espalda sincronizando con la respiración.' },
-    { name:'Hilo de aguja', cat:'Columna', sets:2, duration:45, side:true,
-      desc:'A cuatro patas, pasa un brazo por debajo del cuerpo y lleva el hombro al suelo.' },
-    { name:'Twist supino', cat:'Columna', sets:2, duration:60, side:true,
-      desc:'Tumbado boca arriba, lleva la rodilla al lado opuesto mientras la cabeza mira al otro lado.' },
-    { name:'Cuadrupedia lateral', cat:'Columna', sets:2, reps:8, side:true,
-      desc:'A cuatro patas, eleva un brazo y la pierna contraria manteniendo la columna neutra.' },
-    // Hombros
-    { name:'Banda en pared', cat:'Hombros', sets:2, duration:60, side:true,
-      desc:'Coloca el brazo en extensión contra la pared y gira el cuerpo alejándote suavemente.' },
-    { name:'Sleeper stretch', cat:'Hombros', sets:2, duration:60, side:true,
-      desc:'Tumbado de lado, dobla el codo 90°. Con la otra mano empuja suavemente el antebrazo hacia abajo.' },
-    { name:'Alcance torácico con foam roller', cat:'Hombros', sets:2, duration:90, side:false,
-      desc:'Tumbado sobre el foam roller a nivel torácico, deja caer los brazos atrás.' },
-    { name:'Face pull con banda', cat:'Hombros', sets:3, reps:15,
-      desc:'Con banda a altura de cara, lleva las manos hacia las orejas abriendo los codos.' },
-    // Tobillos
-    { name:'Estiramiento de sóleo', cat:'Tobillos', sets:2, duration:60, side:true,
-      desc:'Talón apoyado, dobla ligeramente la rodilla y empuja hacia delante.' },
-    { name:'Movilidad tobillo en pared', cat:'Tobillos', sets:2, reps:10, side:true,
-      desc:'Pie cerca de la pared, dobla la rodilla intentando tocar la pared sin levantar el talón.' },
-    { name:'CARs de tobillo', cat:'Tobillos', sets:2, reps:5, side:true,
-      desc:'Círculos lentos y controlados del tobillo, buscando el máximo rango sin compensaciones.' },
-    // Muñecas
-    { name:'Estiramiento dorsal de muñeca', cat:'Muñecas', sets:2, duration:45, side:true,
-      desc:'Con el brazo extendido, usa la otra mano para doblar los dedos hacia abajo.' },
-    { name:'CARs de muñeca', cat:'Muñecas', sets:2, reps:5, side:true,
-      desc:'Círculos lentos controlados de la muñeca en máximo rango.' },
-    // Full body
-    { name:'World greatest stretch', cat:'Full body', sets:2, reps:5, side:true,
-      desc:'Zancada larga con mano en el suelo, rota hacia la rodilla delantera y eleva el brazo.' },
-    { name:'Segmental squat', cat:'Full body', sets:2, reps:8,
-      desc:'Sentadilla profunda, abre las rodillas con los codos e intenta alargar la columna.' },
-    { name:'Inchworm', cat:'Full body', sets:2, reps:6,
-      desc:'De pie, baja las manos al suelo y camina con ellas hasta plancha. Vuelve caminando con los pies.' },
-    { name:'Scorpion', cat:'Full body', sets:2, reps:6, side:true,
-      desc:'Tumbado boca abajo, lleva el talón al glúteo opuesto rotando la cadera.' },
+    { name:'Apertura de cadera 90/90',       cat:'Caderas',  sets:2, duration:60, side:true,  desc:'Siéntate con ambas piernas en 90°. Inclínate hacia delante manteniendo la espalda recta.' },
+    { name:'Paloma tumbado',                  cat:'Caderas',  sets:2, duration:60, side:true,  desc:'Tumbado boca arriba, cruza el tobillo sobre la rodilla opuesta y empuja suavemente.' },
+    { name:'Lunge con rotación',              cat:'Caderas',  sets:2, duration:45, side:true,  desc:'En posición de zancada, rota el tronco hacia la pierna delantera.' },
+    { name:'Hip flexor stretch',              cat:'Caderas',  sets:2, duration:60, side:true,  desc:'Rodilla en el suelo, empuja la cadera hacia delante con el glúteo contraído.' },
+    { name:'Frog stretch',                    cat:'Caderas',  sets:2, duration:90, side:false, desc:'De rodillas con las piernas abiertas en V, abre progresivamente hacia los lados.' },
+    { name:'Cat-Cow',                         cat:'Columna',  sets:3, reps:10,                 desc:'A cuatro patas, alterna arquear y redondear la espalda con la respiración.' },
+    { name:'Hilo de aguja',                   cat:'Columna',  sets:2, duration:45, side:true,  desc:'A cuatro patas, pasa un brazo por debajo del cuerpo llevando el hombro al suelo.' },
+    { name:'Twist supino',                    cat:'Columna',  sets:2, duration:60, side:true,  desc:'Tumbado, lleva la rodilla al lado opuesto mientras la cabeza mira al otro lado.' },
+    { name:'Banda en pared',                  cat:'Hombros',  sets:2, duration:60, side:true,  desc:'Brazo en extensión contra la pared, gira el cuerpo alejándote.' },
+    { name:'Sleeper stretch',                 cat:'Hombros',  sets:2, duration:60, side:true,  desc:'Tumbado de lado, dobla el codo 90°. Empuja el antebrazo hacia abajo.' },
+    { name:'Face pull con banda',             cat:'Hombros',  sets:3, reps:15,                 desc:'Con banda a altura de cara, lleva las manos a las orejas abriendo los codos.' },
+    { name:'Estiramiento de sóleo',           cat:'Tobillos', sets:2, duration:60, side:true,  desc:'Talón apoyado, dobla ligeramente la rodilla y empuja hacia delante.' },
+    { name:'Movilidad tobillo en pared',      cat:'Tobillos', sets:2, reps:10,     side:true,  desc:'Pie cerca de la pared, dobla la rodilla intentando tocarla sin levantar el talón.' },
+    { name:'Estiramiento dorsal de muñeca',   cat:'Muñecas',  sets:2, duration:45, side:true,  desc:'Con el brazo extendido, dobla los dedos hacia abajo con la otra mano.' },
+    { name:'World greatest stretch',          cat:'Full body',sets:2, reps:5,      side:true,  desc:'Zancada larga, mano en el suelo, rota hacia la rodilla delantera y eleva el brazo.' },
+    { name:'Squat profundo',                  cat:'Full body',sets:2, duration:60,              desc:'Sentadilla profunda, abre las rodillas con los codos y alarga la columna.' },
+    { name:'Inchworm',                        cat:'Full body',sets:2, reps:6,                  desc:'Baja las manos al suelo y camina con ellas hasta plancha. Vuelve con los pies.' },
+    { name:'Scorpion',                        cat:'Full body',sets:2, reps:6,      side:true,  desc:'Tumbado boca abajo, lleva el talón al glúteo opuesto rotando la cadera.' },
 ];
 
-const MOB_CATS = ['Todos', ...new Set(MOB_LIBRARY.map(e=>e.cat))];
+const MOB_CATS = ['Todos', ...new Set(MOB_LIBRARY.map(e => e.cat))];
 
-function switchMobTab(tab) {
-    mobSubView = tab;
-    ['session','library','builder','history'].forEach(t => {
+/* ── SUB TABS ── */
+function mobSwitchTab(tab) {
+    ['session','routines','library','history'].forEach(t => {
         const v = document.getElementById('mob-view-'+t);
         const b = document.getElementById('mob-tab-'+t);
         if (v) v.style.display = t===tab ? 'block' : 'none';
         if (b) {
             const active = t===tab;
-            b.style.background   = active ? 'rgba(155,127,224,0.15)' : 'var(--s2)';
-            b.style.color        = active ? 'var(--purple)' : 'var(--dim)';
-            b.style.borderColor  = active ? 'rgba(155,127,224,0.25)' : 'var(--border)';
+            b.classList.toggle('mob-tab-active', active);
         }
     });
-    if (tab==='session') renderMobSession();
-    if (tab==='library') renderMobLibrary();
-    if (tab==='builder') renderMobBuilder();
-    if (tab==='history') renderMobHistory();
+    if (tab==='library')  renderMobLibrary();
+    if (tab==='routines') renderMobRoutinesList();
+    if (tab==='history')  renderMobHistory();
+    if (tab==='session')  renderMobSessionView();
 }
 
-function renderMobSession() {
-    // Populate routine selector
+/* ── SESSION ── */
+function renderMobSessionView() {
+    // Populate routine select
     const sel = document.getElementById('mob-routine-sel');
     if (sel) {
-        sel.innerHTML = '<option value="">— Sin rutina —</option>' +
-            dbMobRoutines.map((r,i)=>`<option value="${i}">${r.name}</option>`).join('');
+        sel.innerHTML = '<option value="">— Selecciona una rutina —</option>' +
+            dbMobRoutines.map((r,i) => `<option value="${i}">${r.name}</option>`).join('');
     }
-    const listEl = document.getElementById('mob-session-list');
-    if (!listEl) return;
-    const routine = sel?.value !== '' ? dbMobRoutines[parseInt(sel?.value)] : null;
-    const exercises = routine ? routine.exercises : MOB_LIBRARY.filter(e=>e.cat==='Full body').slice(0,5);
+    // Show/hide active session
+    const activeDiv = document.getElementById('mob-active-session');
+    if (activeDiv) activeDiv.style.display = mobActiveSess ? 'block' : 'none';
+    if (mobActiveSess) renderMobActiveExercises();
+}
 
-    listEl.innerHTML = exercises.map((ex,i) => {
-        const done = !!mobActiveSess[ex.name];
-        const label = ex.duration ? secToMmss(ex.duration) : (ex.reps ? ex.reps+'×' : '');
+function startMobSession() {
+    const sel = document.getElementById('mob-routine-sel');
+    const idx = sel?.value;
+    if (idx === '' || idx === null || idx === undefined) {
+        toast('Selecciona una rutina primero'); return;
+    }
+    const routine = dbMobRoutines[parseInt(idx)];
+    if (!routine) { toast('Rutina no encontrada'); return; }
+
+    mobActiveSess = {
+        routineIdx: parseInt(idx),
+        routineName: routine.name,
+        exercises: routine.exercises.map(ex => ({ ...ex, done: false })),
+        startTime: Date.now(),
+    };
+    const nameEl = document.getElementById('mob-sess-name');
+    if (nameEl) nameEl.textContent = routine.name;
+    renderMobSessionView();
+    toast('✓ Sesión iniciada: ' + routine.name);
+}
+
+function cancelMobSession() {
+    mobActiveSess = null;
+    renderMobSessionView();
+    toast('Sesión cancelada');
+}
+
+function toggleMobExDone(idx) {
+    if (!mobActiveSess) return;
+    mobActiveSess.exercises[idx].done = !mobActiveSess.exercises[idx].done;
+    renderMobActiveExercises();
+}
+
+function renderMobActiveExercises() {
+    const listEl   = document.getElementById('mob-session-exercises');
+    const doneEl   = document.getElementById('mob-done-count');
+    const totalEl  = document.getElementById('mob-total-count');
+    const barEl    = document.getElementById('mob-sess-bar');
+    if (!listEl || !mobActiveSess) return;
+
+    const exs    = mobActiveSess.exercises;
+    const done   = exs.filter(e => e.done).length;
+    const pct    = exs.length ? Math.round(done/exs.length*100) : 0;
+    if (doneEl)  doneEl.textContent  = done;
+    if (totalEl) totalEl.textContent = exs.length;
+    if (barEl)   barEl.style.width   = pct + '%';
+
+    listEl.innerHTML = exs.map((ex, i) => {
+        const label = ex.duration ? secToMmss(ex.duration) : (ex.reps ? ex.reps+' reps' : '');
+        const icon  = {Caderas:'🦵',Columna:'🔃',Hombros:'🤸',Tobillos:'🦶',Muñecas:'🤲','Full body':'💪'}[ex.cat]||'🧘';
         return `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-            <div onclick="toggleMobEx('${ex.name}')" style="width:32px;height:32px;border-radius:9px;flex-shrink:0;cursor:pointer;
-                border:1.5px solid ${done?'var(--green)':'rgba(155,127,224,0.3)'};
-                background:${done?'rgba(82,183,136,0.15)':'rgba(155,127,224,0.06)'};
-                display:flex;align-items:center;justify-content:center;font-size:13px;
-                color:${done?'var(--green)':'var(--purple)'}">
-                ${done?'✓':''}
-            </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;
+            border-bottom:1px solid rgba(255,255,255,0.04);
+            background:${ex.done?'rgba(82,183,136,0.04)':'transparent'}">
+            <button onclick="toggleMobExDone(${i})"
+                style="width:32px;height:32px;border-radius:9px;flex-shrink:0;cursor:pointer;
+                border:1.5px solid ${ex.done?'var(--green)':'rgba(155,127,224,0.35)'};
+                background:${ex.done?'rgba(82,183,136,0.15)':'rgba(155,127,224,0.06)'};
+                display:flex;align-items:center;justify-content:center;font-size:14px;
+                color:${ex.done?'var(--green)':'var(--purple)'}">
+                ${ex.done?'✓':''}
+            </button>
             <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:600;color:${done?'var(--dim)':'var(--text)'};
-                    text-decoration:${done?'line-through':'none'}">${ex.name}${ex.side?' (cada lado)':''}</div>
-                <div style="font-size:11px;color:var(--dim);margin-top:1px">${ex.cat} · ${label} · ${ex.sets||1} sets</div>
+                <div style="font-size:13px;font-weight:600;color:${ex.done?'var(--dim)':'var(--text)'};
+                    text-decoration:${ex.done?'line-through':'none'}">${ex.name}${ex.side?' <span style="font-size:10px;color:var(--dim)">↔ c/lado</span>':''}</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:1px">${ex.cat} · ${ex.sets} sets · ${label}</div>
             </div>
-            <div style="font-size:20px">${
-                ex.cat==='Caderas'?'🦵':ex.cat==='Columna'?'🔃':ex.cat==='Hombros'?'🤸':
-                ex.cat==='Tobillos'?'🦶':ex.cat==='Muñecas'?'🤲':'💪'
-            }</div>
+            <span style="font-size:20px">${icon}</span>
         </div>`;
     }).join('');
-
-    const doneCount  = Object.values(mobActiveSess).filter(Boolean).length;
-    const totalCount = exercises.length;
-    const pct        = totalCount ? Math.round(doneCount/totalCount*100) : 0;
-    const doneEl = document.getElementById('mob-done-today');
-    const totEl  = document.getElementById('mob-total-today');
-    const barEl  = document.getElementById('mob-progress-bar');
-    if (doneEl) doneEl.textContent = doneCount;
-    if (totEl)  totEl.textContent  = totalCount;
-    if (barEl)  barEl.style.width  = pct+'%';
 }
-
-function toggleMobEx(name) {
-    mobActiveSess[name] = !mobActiveSess[name];
-    renderMobSession();
-}
-
-function loadMobRoutine() { renderMobSession(); }
 
 function finishMobSession() {
-    const sel     = document.getElementById('mob-routine-sel');
-    const routine = sel?.value !== '' ? dbMobRoutines[parseInt(sel?.value)] : null;
-    const done    = Object.keys(mobActiveSess).filter(k=>mobActiveSess[k]);
+    if (!mobActiveSess) return;
+    const done = mobActiveSess.exercises.filter(e => e.done);
     if (!done.length) { toast('Completa al menos un ejercicio'); return; }
+    const duration = Math.round((Date.now() - mobActiveSess.startTime) / 60000);
     dbMobSessions.unshift({
         date: todayStr,
-        routineName: routine?.name || 'Sesión libre',
-        exercises: done,
-        total: Object.keys(mobActiveSess).length,
-        duration: done.length * 2,
+        routineName: mobActiveSess.routineName,
+        exercises: done.map(e => e.name),
+        total: mobActiveSess.exercises.length,
+        duration: Math.max(1, duration),
     });
     saveMobSessions();
-    mobActiveSess = {};
-    renderMobSession();
+    mobActiveSess = null;
+    renderMobSessionView();
     renderMobHistory();
-    toast('✓ Sesión de movilidad guardada');
+    toast('✓ Sesión guardada · '+done.length+' ejercicios');
 }
 
+/* ── ROUTINES ── */
+function toggleMobBuilder() {
+    mobBuilderOpen = !mobBuilderOpen;
+    const form = document.getElementById('mob-builder-form');
+    const btn  = document.getElementById('mob-builder-toggle');
+    if (form) form.style.display = mobBuilderOpen ? 'block' : 'none';
+    if (btn)  btn.textContent    = mobBuilderOpen ? 'Contraer ↑' : 'Expandir ↓';
+}
+
+function renderMobBuilderList() {
+    const listEl = document.getElementById('mob-builder-list');
+    const countEl= document.getElementById('mob-builder-count');
+    if (countEl) countEl.textContent = mobBuilderList.length;
+    if (!listEl) return;
+    if (!mobBuilderList.length) {
+        listEl.innerHTML = '<div style="text-align:center;padding:12px;font-size:13px;color:var(--dim)">Sin ejercicios. Añade desde la biblioteca.</div>';
+        return;
+    }
+    listEl.innerHTML = '<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:4px">' +
+    mobBuilderList.map((ex, i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text)">${ex.name}</div>
+                <div style="font-size:11px;color:var(--dim)">${ex.cat}</div>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+                <input class="inp inp-sm" type="number" value="${ex.sets||2}" style="width:44px;text-align:center"
+                    onchange="mobBuilderList[${i}].sets=Math.max(1,+this.value)">
+                <span style="font-size:11px;color:var(--dim)">sets</span>
+                <button onclick="mobBuilderList.splice(${i},1);renderMobBuilderList()"
+                    style="width:26px;height:26px;border-radius:7px;background:rgba(224,95,95,0.08);
+                    color:var(--red);border:none;font-size:11px;cursor:pointer">✕</button>
+            </div>
+        </div>`).join('') + '</div>';
+}
+
+function saveMobRoutine() {
+    const name  = document.getElementById('mob-rtn-name')?.value.trim();
+    const focus = document.getElementById('mob-rtn-focus')?.value;
+    if (!name)               { toast('Escribe un nombre'); return; }
+    if (!mobBuilderList.length) { toast('Añade al menos un ejercicio'); return; }
+    dbMobRoutines.push({ name, focus, exercises: [...mobBuilderList] });
+    saveMobRoutines();
+    // Reset
+    const nameEl = document.getElementById('mob-rtn-name');
+    if (nameEl) nameEl.value = '';
+    mobBuilderList = [];
+    mobBuilderOpen = false;
+    const form = document.getElementById('mob-builder-form');
+    const btn  = document.getElementById('mob-builder-toggle');
+    if (form) form.style.display = 'none';
+    if (btn)  btn.textContent    = 'Expandir ↓';
+    renderMobBuilderList();
+    renderMobRoutinesList();
+    renderMobSessionView();
+    toast('✓ Rutina guardada: '+name);
+}
+
+function renderMobRoutinesList() {
+    const listEl = document.getElementById('mob-routines-list');
+    if (!listEl) return;
+    if (!dbMobRoutines.length) {
+        listEl.innerHTML = '<div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center;font-size:13px;color:var(--dim)">Sin rutinas. Crea la primera arriba.</div>';
+        return;
+    }
+    const focusLabel = {full:'Cuerpo completo',upper:'Tren superior',lower:'Tren inferior',spine:'Columna',hips:'Caderas',shoulders:'Hombros',morning:'Matutina',night:'Nocturna'};
+    listEl.innerHTML = dbMobRoutines.map((r, i) => `
+        <div class="mob-card">
+            <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px">
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">${r.name}</div>
+                    <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${focusLabel[r.focus]||r.focus||''} · ${r.exercises.length} ejercicios</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px">
+                        ${r.exercises.slice(0,4).map(ex=>`<span style="background:rgba(155,127,224,0.1);color:var(--purple);border:1px solid rgba(155,127,224,0.2);border-radius:99px;padding:2px 9px;font-size:10px;font-weight:600">${ex.name}</span>`).join('')}
+                        ${r.exercises.length>4?`<span style="color:var(--dim);font-size:10px;padding:2px 4px">+${r.exercises.length-4} más</span>`:''}
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+                    <button onclick="useMobRoutine(${i})"
+                        style="padding:7px 14px;border-radius:9px;background:rgba(155,127,224,0.12);
+                        color:var(--purple);border:1px solid rgba(155,127,224,0.25);font-size:12px;
+                        font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap">
+                        ▶ Usar
+                    </button>
+                    <button onclick="deleteMobRoutine(${i})"
+                        style="padding:7px 14px;border-radius:9px;background:rgba(224,95,95,0.06);
+                        color:var(--red);border:1px solid rgba(224,95,95,0.15);font-size:12px;
+                        font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function useMobRoutine(idx) {
+    const sel = document.getElementById('mob-routine-sel');
+    if (sel) sel.value = idx;
+    mobSwitchTab('session');
+    startMobSession();
+}
+
+function deleteMobRoutine(idx) {
+    dbMobRoutines.splice(idx, 1);
+    saveMobRoutines();
+    renderMobRoutinesList();
+    renderMobSessionView();
+    toast('Rutina eliminada');
+}
+
+/* ── LIBRARY ── */
 function renderMobLibrary() {
+    const banner = document.getElementById('mob-pick-banner');
+    if (banner) banner.style.display = mobPickingForBuilder ? 'block' : 'none';
+
     const catRow = document.getElementById('mob-cat-chips');
     if (catRow) {
         catRow.innerHTML = MOB_CATS.map(cat => `
@@ -2330,157 +2538,96 @@ function renderMobLibrary() {
                 ${cat}
             </div>`).join('');
     }
+
     const listEl = document.getElementById('mob-library-list');
     if (!listEl) return;
     const filtered = MOB_LIBRARY.filter(e => mobActiveCat==='Todos' || e.cat===mobActiveCat);
-    listEl.innerHTML = filtered.map((ex,i) => {
-        const label = ex.duration ? secToMmss(ex.duration) : (ex.reps ? ex.reps+' reps' : '');
+    const ICONS = {Caderas:'🦵',Columna:'🔃',Hombros:'🤸',Tobillos:'🦶',Muñecas:'🤲','Full body':'💪'};
+
+    listEl.innerHTML = filtered.map((ex, libIdx) => {
+        const label     = ex.duration ? secToMmss(ex.duration) : (ex.reps ? ex.reps+' reps' : '');
+        const inBuilder = mobBuilderList.some(e=>e.name===ex.name);
         return `
         <div class="mob-card">
             <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+                <div style="font-size:28px;flex-shrink:0">${ICONS[ex.cat]||'🧘'}</div>
                 <div style="flex:1;min-width:0">
-                    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">${ex.name}${ex.side?' <span style="font-size:10px;color:var(--dim)">↔ c/lado</span>':''}</div>
+                    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">${ex.name}${ex.side?' <span style="font-size:10px;color:var(--dim)">↔ c/lado</span>':''}</div>
                     <div style="font-size:11px;color:var(--dim)">${ex.cat} · ${ex.sets} sets · ${label}</div>
                 </div>
-                ${mobForBuilder ? `
-                <button onclick="addMobToBuilder(${i})"
-                    style="padding:7px 14px;border-radius:9px;background:rgba(155,127,224,0.12);
-                    color:var(--purple);border:1px solid rgba(155,127,224,0.25);
-                    font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
-                    + Añadir
+                ${mobPickingForBuilder ? `
+                <button onclick="pickMobEx(${libIdx})"
+                    style="padding:8px 14px;border-radius:9px;flex-shrink:0;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;
+                    background:${inBuilder?'rgba(82,183,136,0.12)':'rgba(155,127,224,0.12)'};
+                    color:${inBuilder?'var(--green)':'var(--purple)'};
+                    border:1px solid ${inBuilder?'rgba(82,183,136,0.25)':'rgba(155,127,224,0.25)'}">
+                    ${inBuilder?'✓ Añadido':'+ Añadir'}
                 </button>` : ''}
             </div>
-            <div style="padding:0 16px 12px;font-size:12px;color:var(--sub);line-height:1.6;border-top:1px solid rgba(255,255,255,0.04)">${ex.desc}</div>
+            <div style="padding:0 16px 12px;font-size:12px;color:var(--sub);line-height:1.6">${ex.desc}</div>
         </div>`;
     }).join('');
 }
 
 function setMobCat(cat) { mobActiveCat = cat; renderMobLibrary(); }
 
-function openMobLibraryForBuilder() {
-    mobForBuilder = true;
-    switchMobTab('library');
-}
-
-function addMobToBuilder(libIdx) {
+function pickMobEx(libIdx) {
     const ex = MOB_LIBRARY[libIdx];
-    if (!mobBuilderList.find(e=>e.name===ex.name)) {
+    if (!ex) return;
+    if (mobBuilderList.some(e=>e.name===ex.name)) {
+        // Toggle off
+        mobBuilderList = mobBuilderList.filter(e=>e.name!==ex.name);
+        toast(ex.name+' eliminado');
+    } else {
         mobBuilderList.push({...ex});
         toast('✓ '+ex.name+' añadido');
     }
-    mobForBuilder = false;
-    switchMobTab('builder');
+    renderMobLibrary();
+    renderMobBuilderList();
 }
 
-function renderMobBuilder() {
-    const listEl = document.getElementById('mob-builder-list');
-    if (!listEl) return;
-    if (!mobBuilderList.length) {
-        listEl.innerHTML = '<div style="text-align:center;padding:16px;font-size:13px;color:var(--dim)">Sin ejercicios. Añade desde la biblioteca.</div>';
-        return;
-    }
-    listEl.innerHTML = mobBuilderList.map((ex,i) => `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;
-            background:var(--s2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px">
-            <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:600;color:var(--text)">${ex.name}</div>
-                <div style="font-size:11px;color:var(--dim)">${ex.cat}</div>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center">
-                <input class="inp inp-sm" type="number" value="${ex.sets||2}" style="width:44px"
-                    onchange="mobBuilderList[${i}].sets=+this.value">
-                <span style="font-size:11px;color:var(--dim)">sets</span>
-                <button onclick="mobBuilderList.splice(${i},1);renderMobBuilder()"
-                    style="color:var(--red);background:none;border:none;font-size:12px;cursor:pointer;padding:4px">✕</button>
-            </div>
-        </div>`).join('');
-
-    // Render saved routines
-    const rl = document.getElementById('mob-routines-list');
-    if (rl) {
-        rl.innerHTML = dbMobRoutines.map((r,i) => `
-            <div class="mob-card">
-                <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
-                    <div style="flex:1">
-                        <div style="font-size:14px;font-weight:700;color:var(--text)">${r.name}</div>
-                        <div style="font-size:12px;color:var(--dim)">${r.focus||''} · ${r.exercises.length} ejercicios</div>
-                    </div>
-                    <button onclick="dbMobRoutines.splice(${i},1);saveMobRoutines();renderMobBuilder()"
-                        style="color:var(--dim);background:none;border:none;font-size:13px;cursor:pointer">✕</button>
-                </div>
-            </div>`).join('') || '<div style="text-align:center;padding:20px;font-size:13px;color:var(--dim)">Sin rutinas guardadas.</div>';
-    }
-}
-
-function saveMobRoutine() {
-    const name  = document.getElementById('mob-rtn-name').value.trim();
-    const focus = document.getElementById('mob-rtn-focus').value;
-    if (!name) { toast('Escribe un nombre para la rutina'); return; }
-    if (!mobBuilderList.length) { toast('Añade al menos un ejercicio'); return; }
-    dbMobRoutines.push({ name, focus, exercises: [...mobBuilderList] });
-    saveMobRoutines();
-    mobBuilderList = [];
-    document.getElementById('mob-rtn-name').value = '';
-    renderMobBuilder();
-    renderMobSession();
-    toast('✓ Rutina guardada: '+name);
-}
-
+/* ── HISTORY ── */
 function renderMobHistory() {
-    const stats = document.getElementById('mob-hist-stats');
     const totalSess = dbMobSessions.length;
     const thisWeek  = dbMobSessions.filter(s=>{ const d=new Date(s.date+'T12:00:00'); return (Date.now()-d)<7*86400000; });
     const totalExs  = dbMobSessions.reduce((s,sess)=>s+(sess.exercises?.length||0), 0);
-    if (stats) stats.innerHTML = `
-        <div class="stat-tile st-purple">
-            <div class="stat-label">Sesiones totales</div>
-            <div class="stat-val" style="color:var(--purple)">${totalSess}</div>
-        </div>
-        <div class="stat-tile st-green">
-            <div class="stat-label">Esta semana</div>
-            <div class="stat-val" style="color:var(--green)">${thisWeek.length}</div>
-            <div class="stat-unit">sesiones</div>
-        </div>
-        <div class="stat-tile">
-            <div class="stat-label">Ejercicios totales</div>
-            <div class="stat-val" style="color:var(--acc)">${totalExs}</div>
-        </div>`;
+
+    const tEl=document.getElementById('mob-stat-total');
+    const wEl=document.getElementById('mob-stat-week');
+    const eEl=document.getElementById('mob-stat-exs');
+    if(tEl) tEl.textContent=totalSess;
+    if(wEl) wEl.textContent=thisWeek.length;
+    if(eEl) eEl.textContent=totalExs;
 
     const listEl = document.getElementById('mob-history-list');
     if (!listEl) return;
     if (!dbMobSessions.length) {
-        listEl.innerHTML = '<div style="text-align:center;padding:32px;font-size:13px;color:var(--dim)">Sin sesiones registradas todavía.</div>';
-        return;
+        listEl.innerHTML='<div style="text-align:center;padding:32px;font-size:13px;color:var(--dim)">Sin sesiones todavía.</div>'; return;
     }
     const MONTHS_S=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    listEl.innerHTML = dbMobSessions.slice(0,20).map((s,i) => {
-        const d = new Date(s.date+'T12:00:00');
+    listEl.innerHTML = dbMobSessions.slice(0,20).map((s,i)=>{
+        const d=new Date(s.date+'T12:00:00');
         return `
         <div class="mob-card">
             <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
-                <div style="text-align:center;flex-shrink:0;width:36px">
+                <div style="text-align:center;flex-shrink:0;width:34px">
                     <div style="font-size:16px;font-weight:700;color:var(--text);line-height:1">${d.getDate()}</div>
                     <div style="font-size:10px;color:var(--dim)">${MONTHS_S[d.getMonth()]}</div>
                 </div>
-                <div style="flex:1">
+                <div style="flex:1;min-width:0">
                     <div style="font-size:13px;font-weight:600;color:var(--text)">${s.routineName||'Sesión libre'}</div>
                     <div style="font-size:11px;color:var(--dim);margin-top:2px">${s.exercises?.length||0} ejercicios · ~${s.duration||0} min</div>
                 </div>
                 <button onclick="dbMobSessions.splice(${i},1);saveMobSessions();renderMobHistory()"
-                    style="color:var(--dim);background:none;border:none;font-size:13px;cursor:pointer">✕</button>
+                    style="color:var(--dim);background:none;border:none;font-size:13px;cursor:pointer;padding:4px">✕</button>
             </div>
         </div>`;
     }).join('');
 }
 
 function renderMobility() {
-    switchMobTab('session');
-    renderMobLibrary();
-    renderMobBuilder();
-    renderMobHistory();
+    mobSwitchTab('session');
 }
-
-// Add stat-tile colors needed
 
 </script>
 </body>
