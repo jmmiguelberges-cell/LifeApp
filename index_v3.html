@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Life OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeRPG/icono.jpg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="lifeos.css">
+
+    <style>
+        :root {
+            --bg:       #111318;
+            --s1:       #191c22;
+            --s2:       #1f2229;
+            --border:   rgba(255,255,255,0.07);
+            --border2:  rgba(255,255,255,0.12);
+            --text:     #e8e9ee;
+            --sub:      #8a8d96;
+            --dim:      #4a4d56;
+
+            --a1: #5b8af0;   /* Agenda / Disciplina — azul suave */
+            --a2: #52b788;   /* Nutrición / Salud — verde salvia */
+            --a3: #e07a5f;   /* Físico — terracota */
+            --a4: #c9a84c;   /* Finanzas — dorado apagado */
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            overflow: hidden;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            -webkit-user-select: none;
+            font-size: 15px;
+        }
+
+        /* ── SCROLL ── */
+        #sw { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 88px; }
+        #sw::-webkit-scrollbar { display: none; }
+
+        /* ══════════════════════
+           HEADER
+        ══════════════════════ */
+        .top-bar {
+            padding: 52px 20px 18px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, #0d0f13 0%, var(--bg) 100%);
+        }
+        .greeting {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--sub);
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
+        }
+        .greeting-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 30px;
+            color: var(--text);
+            line-height: 1.1;
+            font-weight: 400;
+        }
+        .greeting-name em {
+            font-style: italic;
+            color: var(--a1);
+            background: linear-gradient(135deg, #6b9af5, #52b788);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .top-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+        }
+        .date-chip {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--sub);
+            letter-spacing: 0.2px;
+        }
+        /* Global progress pill */
+        .level-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(91,138,240,0.08);
+            border: 1px solid rgba(91,138,240,0.2);
+            border-radius: 99px;
+            padding: 5px 12px 5px 8px;
+        }
+        .level-dot {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--a1), #3a6bd4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+        }
+        .level-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .level-xp {
+            font-size: 11px;
+            color: var(--sub);
+        }
+
+        /* ══════════════════════
+           XP BAR (subtle)
+        ══════════════════════ */
+        .xp-strip {
+            height: 3px;
+            background: var(--s1);
+            position: relative;
+        }
+        .xp-strip-fill {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            background: linear-gradient(90deg, #5b8af0, #52b788, #c9a84c);
+            transition: width 1s ease;
+        }
+
+        /* ══════════════════════
+           SECTION
+        ══════════════════════ */
+        .section { padding: 20px 20px 0; }
+        .sec-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--dim);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        /* ══════════════════════
+           TODAY SUMMARY CARD
+        ══════════════════════ */
+        .today-card {
+            background: var(--s1);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .today-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .today-row:last-child { border-bottom: none; }
+        .today-row:active { background: rgba(255,255,255,0.03); }
+
+        /* Left color stripe */
+        .today-row::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 10px; bottom: 10px;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+        }
+        .tr-a::before { background: var(--a1); }
+        .tr-b::before { background: var(--a2); }
+        .tr-c::before { background: var(--a3); }
+        .tr-d::before { background: var(--a4); }
+
+        .today-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .ic-a { background: rgba(91,138,240,0.12); }
+        .ic-b { background: rgba(82,183,136,0.12); }
+        .ic-c { background: rgba(224,122,95,0.12); }
+        .ic-d { background: rgba(201,168,76,0.12); }
+
+        .today-content { flex: 1; min-width: 0; }
+        .today-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .today-title.dim { color: var(--dim); font-weight: 400; }
+        .today-sub {
+            font-size: 12px;
+            color: var(--sub);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-badge {
+            flex-shrink: 0;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.2px;
+        }
+        .sb-done    { background: rgba(82,183,136,0.1); color: #52b788; }
+        .sb-pending { background: rgba(255,255,255,0.05); color: var(--dim); }
+        .sb-locked  { background: transparent; color: var(--dim); border: 1px solid var(--border); }
+
+        /* ══════════════════════
+           AREAS GRID
+        ══════════════════════ */
+        .areas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .area-card {
+            background: var(--s1);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .area-card:active { transform: scale(0.97); }
+
+        /* Top accent */
+        .area-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 16px; right: 40%;
+            height: 2px;
+            border-radius: 0 0 2px 2px;
+        }
+        .ac-a::before { background: var(--a1); }
+        .ac-b::before { background: var(--a2); }
+        .ac-c::before { background: var(--a3); }
+        .ac-d::before { background: var(--a4); }
+
+        .area-icon {
+            font-size: 22px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .area-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--sub);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .area-level {
+            font-family: 'DM Serif Display', serif;
+            font-size: 38px;
+            font-weight: 400;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        .ac-a .area-level { color: var(--a1); }
+        .ac-b .area-level { color: var(--a2); }
+        .ac-c .area-level { color: var(--a3); }
+        .ac-d .area-level { color: var(--a4); }
+
+        .area-bar-track {
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .area-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1s ease;
+        }
+        .ac-a .area-bar-fill { background: var(--a1); }
+        .ac-b .area-bar-fill { background: var(--a2); }
+        .ac-c .area-bar-fill { background: var(--a3); }
+        .ac-d .area-bar-fill { background: var(--a4); }
+
+        .area-xp {
+            font-size: 11px;
+            color: var(--dim);
+            font-weight: 500;
+        }
+
+        /* ══════════════════════
+           XP LOG
+        ══════════════════════ */
+        .log-card {
+            background: var(--s1);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .log-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .log-row:last-child { border-bottom: none; }
+        .log-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .log-info { flex: 1; }
+        .log-concept {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .log-date {
+            font-size: 11px;
+            color: var(--dim);
+            margin-top: 1px;
+        }
+        .log-amount {
+            font-family: 'DM Serif Display', serif;
+            font-size: 16px;
+            font-style: italic;
+        }
+
+        /* ══════════════════════
+           GOALS / MISSIONS
+        ══════════════════════ */
+        .goal-card {
+            background: var(--s1);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .goal-area-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--sub);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tag-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .goal-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        .goal-nums {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--sub);
+            margin-bottom: 7px;
+        }
+        .goal-track {
+            height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .goal-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1s ease;
+        }
+        .goal-update {
+            display: flex;
+            gap: 8px;
+        }
+        .g-inp {
+            flex: 1;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .g-inp:focus { outline: none; border-color: var(--border2); }
+        .g-inp::placeholder { color: var(--dim); }
+        .g-btn {
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            transition: opacity 0.15s;
+        }
+        .g-btn:active { opacity: 0.7; }
+        .goal-del {
+            position: absolute;
+            top: 14px; right: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--dim);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        .goal-done-tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #52b788;
+            background: rgba(82,183,136,0.1);
+            border: 1px solid rgba(82,183,136,0.2);
+            border-radius: 6px;
+            padding: 2px 10px;
+            margin-bottom: 6px;
+        }
+
+        /* ── ADD FORM ── */
+        .add-form {
+            background: var(--s1);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 10px;
+        }
+        .add-form-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--sub);
+            margin-bottom: 14px;
+        }
+        .f-inp {
+            width: 100%;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        .f-inp:focus { outline: none; border-color: var(--border2); }
+        .f-inp::placeholder { color: var(--dim); }
+        .f-row { display: flex; gap: 8px; }
+        .f-row .f-inp { flex: 1; }
+        .f-sel {
+            width: 100%;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            color: var(--sub);
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .f-sel:focus { outline: none; border-color: var(--border2); }
+        .f-sel option { background: #191c22; color: #e8e9ee; }
+        .btn-add {
+            width: 100%;
+            background: rgba(91,138,240,0.12);
+            border: 1px solid rgba(91,138,240,0.2);
+            color: var(--a1);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 10px;
+            transition: background 0.15s;
+        }
+        .btn-add:active { background: rgba(91,138,240,0.2); }
+
+        /* ══════════════════════
+           BOTTOM NAV
+        ══════════════════════ */
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(13,15,19,0.96);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 0 28px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(24px) saturate(2);
+            -webkit-backdrop-filter: blur(24px) saturate(2);
+            z-index: 1000;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; cursor: pointer;
+            color: var(--dim);
+            transition: color 0.2s;
+            padding: 2px 0;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+        .nav-item.active { opacity:1; }
+        .nav-item:active { opacity: 0.6; }
+        .nav-item svg { width: 20px; height: 20px; margin-bottom: 1px; }
+
+        /* Center home button */
+        .nav-center {
+            flex: 0 0 64px;
+            display: flex; flex-direction: column; align-items: center;
+            cursor: pointer;
+            margin-top: -18px;
+        }
+        .nav-home {
+            width: 52px; height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #6b9af5, #4a79df);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 6px 24px rgba(91,138,240,0.45), 0 1px 0 rgba(255,255,255,0.15) inset;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .nav-home:active { transform: scale(0.9); box-shadow: 0 2px 10px rgba(91,138,240,0.2); }
+        .nav-center-label {
+            font-size: 7px; font-weight: 600;
+            color: var(--a1); margin-top: 5px;
+            letter-spacing: 0.5px; text-transform: uppercase;
+        }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed;
+            top: 60px; left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: var(--s1);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            padding: 9px 18px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 9998;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ── ANIMATIONS ── */
+        .s0 { opacity:0; animation: up 0.4s 0.00s ease forwards; }
+        .s1 { opacity:0; animation: up 0.4s 0.07s ease forwards; }
+        .s2 { opacity:0; animation: up 0.4s 0.14s ease forwards; }
+        .s3 { opacity:0; animation: up 0.4s 0.21s ease forwards; }
+        .s4 { opacity:0; animation: up 0.4s 0.28s ease forwards; }
+        .s5 { opacity:0; animation: up 0.4s 0.35s ease forwards; }
+        @keyframes up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px;
+            font-size: 13px;
+            color: var(--dim);
+        }
+        .dimmed { opacity: 0.45; }
+    </style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+    <div class="splash-icon">⚡</div>
+    <div class="splash-name">Life OS</div>
+    <div class="splash-sub">Tu sistema de vida</div>
+    <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+
+<div id="toast">✓ +50 XP Disciplina</div>
+
+<div id="sw">
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="top-bar s0">
+        <div class="greeting" id="greeting-time">Buenos días,</div>
+        <div class="greeting-name"><em>Josema</em></div>
+        <!-- Streak badge -->
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;margin-bottom:-4px">
+            <span style="font-size:18px">🔥</span>
+            <span style="font-family:'DM Serif Display',serif;font-size:18px;color:#c9a84c;line-height:1" id="combined-streak">0</span>
+            <span style="font-size:11px;color:var(--dim);font-weight:600">días de racha</span>
+        </div>
+        <div class="top-meta">
+            <div class="date-chip" id="date-chip">Cargando...</div>
+            <div class="level-pill">
+                <div class="level-dot" id="lv-badge">1</div>
+                <div>
+                    <div class="level-text">Nivel <span id="global-lv">1</span></div>
+                    <div class="level-xp"><span id="total-xp">0</span> XP totales</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- subtle XP strip -->
+    <div class="xp-strip s0">
+        <div class="xp-strip-fill" id="xp-strip" style="width:0%"></div>
+    </div>
+
+    <!-- ═══ HOY ═══ -->
+    <div class="section s1">
+        <div class="sec-label">Resumen de hoy</div>
+        <div class="today-card">
+
+            <div class="today-row tr-a" onclick="go('agenda.html')">
+                <div class="today-icon ic-a">📋</div>
+                <div class="today-content">
+                    <div class="today-title" id="t-agenda">Cargando...</div>
+                    <div class="today-sub"   id="t-agenda-sub"></div>
+                </div>
+                <div class="status-badge sb-pending" id="badge-agenda">+50 XP</div>
+            </div>
+
+            <div class="today-row tr-b" onclick="go('nutricion.html')">
+                <div class="today-icon ic-b">🥗</div>
+                <div class="today-content">
+                    <div class="today-title" id="t-nutri">Cargando...</div>
+                    <div class="today-sub"   id="t-nutri-sub"></div>
+                </div>
+                <div class="status-badge sb-pending" id="badge-nutri">+50 XP</div>
+            </div>
+
+            <div class="today-row tr-c" onclick="go('fisico.html')" style="cursor:pointer">
+                <div class="today-icon ic-c">🏋️</div>
+                <div class="today-content">
+                    <div class="today-title" id="t-fisico">Entrenamiento</div>
+                    <div class="today-sub" id="t-fisico-sub">Toca para registrar sesión</div>
+                </div>
+                <div class="status-badge sb-pending" id="badge-fisico">+50 XP</div>
+            </div>
+
+            <div class="today-row tr-d" onclick="go('finanzas.html')" style="cursor:pointer">
+                <div class="today-icon ic-d">💶</div>
+                <div class="today-content">
+                    <div class="today-title" id="t-finanzas">Finanzas</div>
+                    <div class="today-sub" id="t-finanzas-sub">Toca para añadir movimiento</div>
+                </div>
+                <div class="status-badge sb-pending" id="badge-finanzas">+50 XP</div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ═══ HÁBITOS RÁPIDOS ═══ -->
+    <div class="section s2b" style="padding:16px 20px 0">
+        <div class="sec-label">Hábitos rápidos</div>
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+
+            <!-- AGUA -->
+            <div style="text-align:center">
+                <div style="font-size:22px;margin-bottom:4px">💧</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#5b8af0;line-height:1" id="qs-water">0.0</div>
+                <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">litros</div>
+                <div style="display:flex;gap:4px;justify-content:center">
+                    <button onclick="adjHabit('water',-0.25)" style="flex:1;height:28px;border-radius:7px;background:var(--s2);border:1px solid var(--border);color:var(--sub);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">−</button>
+                    <button onclick="adjHabit('water',0.25)" style="flex:1;height:28px;border-radius:7px;background:rgba(91,138,240,0.12);border:1px solid rgba(91,138,240,0.2);color:#5b8af0;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">+</button>
+                </div>
+            </div>
+
+            <!-- SUEÑO -->
+            <div style="text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 4px">
+                <div style="font-size:22px;margin-bottom:4px">🌙</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#9b7fe0;line-height:1" id="qs-sleep">0.0</div>
+                <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">horas</div>
+                <div style="display:flex;gap:4px;justify-content:center">
+                    <button onclick="adjHabit('sleep',-0.5)" style="flex:1;height:28px;border-radius:7px;background:var(--s2);border:1px solid var(--border);color:var(--sub);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">−</button>
+                    <button onclick="adjHabit('sleep',0.5)" style="flex:1;height:28px;border-radius:7px;background:rgba(155,127,224,0.12);border:1px solid rgba(155,127,224,0.2);color:#9b7fe0;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">+</button>
+                </div>
+            </div>
+
+            <!-- PASOS -->
+            <div style="text-align:center">
+                <div style="font-size:22px;margin-bottom:4px">👟</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#52b788;line-height:1" id="qs-steps">0k</div>
+                <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">pasos</div>
+                <div style="display:flex;gap:4px;justify-content:center">
+                    <button onclick="adjHabit('steps',-1000)" style="flex:1;height:28px;border-radius:7px;background:var(--s2);border:1px solid var(--border);color:var(--sub);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">−</button>
+                    <button onclick="adjHabit('steps',1000)" style="flex:1;height:28px;border-radius:7px;background:rgba(82,183,136,0.12);border:1px solid rgba(82,183,136,0.2);color:#52b788;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif">+</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ═══ ÁREAS ═══ -->
+    <div class="section s2">
+        <div class="sec-label">Progreso por área</div>
+        <div class="areas-grid">
+
+            <div class="area-card ac-a" onclick="go('agenda.html')">
+                <span class="area-icon">📋</span>
+                <div class="area-name">Disciplina</div>
+                <div class="area-level" id="lv-disc">1</div>
+                <div class="area-bar-track">
+                    <div class="area-bar-fill" id="bar-disc" style="width:0%"></div>
+                </div>
+                <div class="area-xp"><span id="xp-disc">0</span> XP · −<span id="next-disc">100</span></div>
+            </div>
+
+            <div class="area-card ac-b" onclick="go('nutricion.html')">
+                <span class="area-icon">🥗</span>
+                <div class="area-name">Salud</div>
+                <div class="area-level" id="lv-fuerza">1</div>
+                <div class="area-bar-track">
+                    <div class="area-bar-fill" id="bar-fuerza" style="width:0%"></div>
+                </div>
+                <div class="area-xp"><span id="xp-fuerza">0</span> XP · −<span id="next-fuerza">100</span></div>
+            </div>
+
+            <div class="area-card ac-c" onclick="go('fisico.html')">
+                <span class="area-icon">🏋️</span>
+                <div class="area-name">Físico</div>
+                <div class="area-level" id="lv-fisico">1</div>
+                <div class="area-bar-track"><div class="area-bar-fill" id="bar-fisico" style="width:0%"></div></div>
+                <div class="area-xp"><span id="xp-fisico">0</span> XP · −<span id="next-fisico">100</span></div>
+            </div>
+
+            <div class="area-card ac-d" onclick="go('finanzas.html')">
+                <span class="area-icon">💶</span>
+                <div class="area-name">Finanzas</div>
+                <div class="area-level" id="lv-finanzas">1</div>
+                <div class="area-bar-track"><div class="area-bar-fill" id="bar-finanzas" style="width:0%"></div></div>
+                <div class="area-xp"><span id="xp-finanzas">0</span> XP · −<span id="next-finanzas">100</span></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ═══ OBJETIVOS ═══ -->
+    <div class="section s3">
+        <div class="sec-label">Objetivos a largo plazo</div>
+        <div id="goals-list"></div>
+
+        <div class="add-form">
+            <div class="add-form-title">Añadir objetivo</div>
+            <input class="f-inp" id="m-name" placeholder="¿Qué quieres conseguir?">
+            <div class="f-row">
+                <input class="f-inp" id="m-cur"  type="number" placeholder="Valor actual">
+                <input class="f-inp" id="m-goal" type="number" placeholder="Meta">
+            </div>
+            <select class="f-sel" id="m-stat">
+                <option value="disc">📋  Disciplina</option>
+                <option value="fuerza">🥗  Salud</option>
+                <option value="intel">🏋️  Físico</option>
+                <option value="riqueza">💶  Finanzas</option>
+            </select>
+            <button class="btn-add" onclick="addGoal()">Añadir objetivo</button>
+        </div>
+    </div>
+
+    <!-- ═══ ACTIVIDAD ═══ -->
+    <div class="section s4">
+        <div class="sec-label">Actividad reciente</div>
+        <div class="log-card" id="xp-log">
+            <div class="empty-state">Sin actividad registrada aún.</div>
+        </div>
+    </div>
+
+    <!-- ═══ COPIA DE SEGURIDAD ═══ -->
+    <div class="section s5">
+        <div class="sec-label">Datos &amp; copia de seguridad</div>
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px">
+
+            <div style="padding:16px;border-bottom:1px solid var(--border)">
+                <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Exportar copia de seguridad</div>
+                <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.5">Descarga un archivo <code style="background:var(--s2);padding:1px 6px;border-radius:4px;font-size:11px">.json</code> con todos tus datos: agenda, entrenamientos, nutrición y objetivos.</div>
+                <button onclick="exportBackup()" style="width:100%;background:rgba(91,138,240,0.1);color:var(--blue);border:1px solid rgba(91,138,240,0.2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:11px;border-radius:10px">
+                    ↓ Descargar copia de seguridad
+                </button>
+            </div>
+
+            <div style="padding:16px">
+                <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Restaurar copia de seguridad</div>
+                <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.5">Selecciona un archivo exportado previamente. <strong style="color:#e05f5f">Sobreescribirá todos los datos actuales.</strong></div>
+                <label style="display:block;width:100%;background:rgba(224,95,95,0.07);color:#e05f5f;border:1px solid rgba(224,95,95,0.2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:11px;border-radius:10px;text-align:center;cursor:pointer">
+                    ↑ Seleccionar archivo para restaurar
+                    <input type="file" accept=".json" onchange="importBackup(this)" style="display:none">
+                </label>
+                <div id="import-status" style="display:none;margin-top:10px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:500"></div>
+            </div>
+        </div>
+
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px">
+            <div class="sec-label" style="margin-bottom:12px">Resumen de datos almacenados</div>
+            <div id="data-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+        </div>
+    </div>
+
+    <div style="height:12px"></div>
+</div>
+
+<!-- ═══ NAV BAR ═══ -->
+<nav class="nav-bar">
+    <div class="nav-item" onclick="go('agenda.html')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Agenda
+    </div>
+    <div class="nav-item" onclick="go('habitos.html')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+        Hábitos
+    </div>
+    <div class="nav-center" onclick="go('index.html')">
+        <div class="nav-home" style="background:linear-gradient(145deg,#5b8af0dd,#5b8af099)">👤</div>
+        <div class="nav-center-label">Inicio</div>
+    </div>
+    <div class="nav-item" onclick="go('nutricion.html')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Nutrición
+    </div>
+    <div class="nav-item" onclick="go('finanzas.html')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Finanzas
+    </div>
+</nav>
+
+<script>
+function go(p) { window.location.replace(p); }
+
+/* ── DATE & GREETING ── */
+const now = new Date();
+const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+const h = now.getHours();
+document.getElementById('greeting-time').textContent =
+    h < 13 ? 'Buenos días,' : h < 20 ? 'Buenas tardes,' : 'Buenas noches,';
+document.getElementById('date-chip').textContent =
+    now.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+
+/* ── STORAGE KEYS ── */
+const K_TIME  = 'josema_rpg_time_v4';
+const K_NUTRI = 'josema_rpg_nutri_log';
+const K_GOALS_N = 'josema_rpg_nutri_goals';
+const K_XP    = 'josema_rpg_xp_v1';
+const K_MISS  = 'josema_rpg_missions_v1';
+
+/* ── XP DB ── */
+let dbXP = JSON.parse(localStorage.getItem(K_XP)) || {
+    fuerza:{total:0,log:[]}, intel:{total:0,log:[]},
+    disc:{total:0,log:[]},   riqueza:{total:0,log:[]}
+};
+let dbMissions = JSON.parse(localStorage.getItem(K_MISS)) || [];
+
+/* ── LEVELS ── */
+function xpFor(l) { return l * 100; }
+function calcLv(tot) {
+    let l=1, r=tot;
+    while (r >= xpFor(l)) { r -= xpFor(l); l++; }
+    return {level:l, current:r, needed:xpFor(l), pct:(r/xpFor(l))*100};
+}
+
+/* ── AREA COLORS ── */
+const AREA_COLOR = {disc:'#5b8af0', fuerza:'#52b788', intel:'#e07a5f', riqueza:'#c9a84c'};
+const AREA_NAME  = {disc:'Disciplina', fuerza:'Salud', intel:'Físico', riqueza:'Finanzas'};
+const AREA_ICON  = {disc:'📋', fuerza:'🥗', intel:'🏋️', riqueza:'💶'};
+
+/* ── XP ENGINE ── */
+function runEngine() {
+    const dbTime  = JSON.parse(localStorage.getItem(K_TIME))    || {};
+    const dbNutri = JSON.parse(localStorage.getItem(K_NUTRI))   || {};
+    const dbGoals = JSON.parse(localStorage.getItem(K_GOALS_N)) || {kcal:2500,p:150,c:250,f:80};
+
+    // DISCIPLINA — tareas completadas
+    const tasks = dbTime[todayStr] || [];
+    const done  = tasks.filter(t=>t.done).length;
+    const total = tasks.length;
+    let agendaDone = false;
+
+    if (!total) {
+        document.getElementById('t-agenda').textContent     = 'Sin tareas planificadas';
+        document.getElementById('t-agenda-sub').textContent = 'Ve a Agenda para añadir tareas';
+        setBadge('badge-agenda','sb-pending','+50 XP');
+    } else if (done === total) {
+        document.getElementById('t-agenda').textContent     = `${done} de ${total} tareas completadas`;
+        document.getElementById('t-agenda-sub').textContent = 'Día completado ✓';
+        setBadge('badge-agenda','sb-done','+50 ✓');
+        agendaDone = true;
+    } else {
+        document.getElementById('t-agenda').textContent     = `${done} de ${total} tareas completadas`;
+        document.getElementById('t-agenda-sub').textContent = `${total - done} pendientes`;
+        setBadge('badge-agenda','sb-pending','+50 XP');
+    }
+    if (agendaDone) awardXP('disc', 50, 'Agenda completada', todayStr);
+
+    // SALUD — macros
+    const log = dbNutri[todayStr] || [];
+    let tP=0, tK=0;
+    log.forEach(f=>{tP+=parseFloat(f.p)||0; tK+=parseFloat(f.kcal)||0;});
+    const macrosOk = tP >= dbGoals.p*0.85 && tK >= dbGoals.kcal*0.85 && tK <= dbGoals.kcal*1.12;
+    let nutriDone = false;
+
+    if (!log.length) {
+        document.getElementById('t-nutri').textContent     = 'Sin registros de comida';
+        document.getElementById('t-nutri-sub').textContent = 'Registra tus comidas en Nutrición';
+        setBadge('badge-nutri','sb-pending','+50 XP');
+    } else if (macrosOk) {
+        document.getElementById('t-nutri').textContent     = `${Math.round(tK)} kcal · ${Math.round(tP)}g proteína`;
+        document.getElementById('t-nutri-sub').textContent = 'Objetivos nutricionales alcanzados ✓';
+        setBadge('badge-nutri','sb-done','+50 ✓');
+        nutriDone = true;
+    } else {
+        const kLeft = Math.max(dbGoals.kcal - tK, 0);
+        document.getElementById('t-nutri').textContent     = `${Math.round(tK)} / ${dbGoals.kcal} kcal`;
+        document.getElementById('t-nutri-sub').textContent = `Faltan ${Math.round(kLeft)} kcal`;
+        setBadge('badge-nutri','sb-pending','+50 XP');
+    }
+    if (nutriDone) awardXP('fuerza', 50, 'Macros cumplidos', todayStr);
+
+    localStorage.setItem(K_XP, JSON.stringify(dbXP));
+}
+
+function setBadge(id, cls, txt) {
+    const el = document.getElementById(id);
+    el.className = `status-badge ${cls}`;
+    el.textContent = txt;
+}
+
+function awardXP(stat, amt, concept, dateKey) {
+    const already = dbXP[stat].log.some(e=>e.date===dateKey && e.concept===concept);
+    if (!already) {
+        dbXP[stat].total += amt;
+        dbXP[stat].log.unshift({date:dateKey, amount:amt, concept});
+        if (dbXP[stat].log.length > 40) dbXP[stat].log.pop();
+        showToast(`+${amt} XP ${AREA_NAME[stat]}`);
+    }
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = '✓ ' + msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+/* ── RENDER STATS ── */
+function renderStats() {
+    const stats = ['disc','fuerza','intel','riqueza'];
+    let grand = 0;
+
+    stats.forEach(s => {
+        const tot = dbXP[s].total;
+        grand += tot;
+        const lv = calcLv(tot);
+        const lvEl   = document.getElementById(`lv-${s}`);
+        const barEl  = document.getElementById(`bar-${s}`);
+        const xpEl   = document.getElementById(`xp-${s}`);
+        const nxEl   = document.getElementById(`next-${s}`);
+        if (lvEl)  lvEl.textContent  = lv.level;
+        if (barEl) barEl.style.width = `${lv.pct.toFixed(1)}%`;
+        if (xpEl)  xpEl.textContent  = tot;
+        if (nxEl)  nxEl.textContent  = lv.needed - lv.current;
+    });
+
+    const avgTot = Math.floor(grand/4);
+    const gLv    = calcLv(avgTot);
+    document.getElementById('global-lv').textContent   = gLv.level;
+    document.getElementById('lv-badge').textContent    = gLv.level;
+    document.getElementById('total-xp').textContent    = grand;
+    document.getElementById('xp-strip').style.width    = `${gLv.pct.toFixed(1)}%`;
+
+    // Combined streak — counts day if any XP earned
+    const streakEl = document.getElementById('combined-streak');
+    if (streakEl) {
+        let streak = 0;
+        const allDates = new Set();
+        ['disc','fuerza','intel','riqueza'].forEach(s => {
+            dbXP[s].log.forEach(e => allDates.add(e.date));
+        });
+        // Also count quick habit days
+        const qhData = JSON.parse(localStorage.getItem('lifeos_quick_habits_v1') || '{}');
+        Object.keys(qhData).forEach(d => {
+            const qh = qhData[d];
+            if (qh.water > 0 || qh.sleep > 0 || qh.steps > 0) allDates.add(d);
+        });
+        let d = new Date();
+        for (let i = 0; i < 365; i++) {
+            const dStr = d.toISOString().slice(0, 10);
+            if (allDates.has(dStr)) streak++;
+            else if (i > 0) break;
+            d.setDate(d.getDate() - 1);
+        }
+        streakEl.textContent = streak;
+    }
+}
+
+/* ── RENDER LOG ── */
+function renderLog() {
+    let all = [];
+    ['disc','fuerza','intel','riqueza'].forEach(s=>{
+        dbXP[s].log.forEach(e=>all.push({...e, stat:s}));
+    });
+    all.sort((a,b)=>b.date.localeCompare(a.date));
+    all = all.slice(0, 10);
+
+    const wrap = document.getElementById('xp-log');
+    if (!all.length) {
+        wrap.innerHTML = `<div class="empty-state">Sin actividad registrada aún.</div>`;
+        return;
+    }
+    wrap.innerHTML = all.map(e=>`
+        <div class="log-row">
+            <div class="log-dot" style="background:${AREA_COLOR[e.stat]}"></div>
+            <div class="log-info">
+                <div class="log-concept">${AREA_ICON[e.stat]} ${e.concept}</div>
+                <div class="log-date">${e.date}</div>
+            </div>
+            <div class="log-amount" style="color:${AREA_COLOR[e.stat]}">+${e.amount}</div>
+        </div>`).join('');
+}
+
+/* ── RENDER GOALS ── */
+function renderGoals() {
+    const el = document.getElementById('goals-list');
+    if (!dbMissions.length) {
+        el.innerHTML = `<div class="empty-state" style="padding:0 0 12px">Sin objetivos todavía. Añade el primero.</div>`;
+        return;
+    }
+    el.innerHTML = dbMissions.map((m,idx)=>{
+        const pct  = Math.min((m.current/m.goal)*100, 100).toFixed(1);
+        const done = m.current >= m.goal;
+        const c    = AREA_COLOR[m.stat];
+        return `
+        <div class="goal-card ${done?'dimmed':''}">
+            ${!done ? `<button class="goal-del" onclick="delGoal(${idx})">✕</button>` : ''}
+            ${done  ? `<div class="goal-done-tag">Completado ✓</div>` : ''}
+            <div class="goal-area-tag">
+                <span class="tag-dot" style="background:${c}"></span>
+                ${AREA_ICON[m.stat]} ${AREA_NAME[m.stat]}
+            </div>
+            <div class="goal-name">${m.name}</div>
+            <div class="goal-nums">
+                <span>Actual: <strong style="color:${c}">${m.current}</strong></span>
+                <span style="color:${c}">${pct}%</span>
+                <span>Meta: ${m.goal}</span>
+            </div>
+            <div class="goal-track">
+                <div class="goal-fill" style="background:${c};width:${pct}%"></div>
+            </div>
+            ${!done ? `
+            <div class="goal-update">
+                <input class="g-inp" id="upd-${idx}" type="number" placeholder="Actualizar progreso...">
+                <button class="g-btn" onclick="updGoal(${idx})"
+                    style="background:rgba(${hexRgb(c)},0.1);color:${c};border:1px solid rgba(${hexRgb(c)},0.2)">
+                    Guardar
+                </button>
+            </div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function hexRgb(h) {
+    const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+    return `${r},${g},${b}`;
+}
+
+function addGoal() {
+    const name = document.getElementById('m-name').value.trim();
+    const cur  = parseFloat(document.getElementById('m-cur').value)||0;
+    const goal = parseFloat(document.getElementById('m-goal').value);
+    const stat = document.getElementById('m-stat').value;
+    if (!name||!goal) { alert('Introduce nombre y meta.'); return; }
+    dbMissions.push({name, current:cur, goal, stat, created:todayStr});
+    localStorage.setItem(K_MISS, JSON.stringify(dbMissions));
+    document.getElementById('m-name').value='';
+    document.getElementById('m-cur').value='';
+    document.getElementById('m-goal').value='';
+    renderGoals();
+}
+
+function updGoal(idx) {
+    const val = parseFloat(document.getElementById(`upd-${idx}`).value);
+    if (isNaN(val)) return;
+    const wasDone = dbMissions[idx].current >= dbMissions[idx].goal;
+    dbMissions[idx].current = val;
+    localStorage.setItem(K_MISS, JSON.stringify(dbMissions));
+    if (!wasDone && val >= dbMissions[idx].goal) {
+        awardXP(dbMissions[idx].stat, 200, `Objetivo: ${dbMissions[idx].name}`, todayStr);
+        localStorage.setItem(K_XP, JSON.stringify(dbXP));
+        renderStats(); renderLog();
+        showToast('+200 XP — ¡Objetivo completado!');
+    }
+    renderGoals();
+}
+
+function delGoal(idx) {
+    if (confirm(`¿Eliminar "${dbMissions[idx].name}"?`)) {
+        dbMissions.splice(idx,1);
+        localStorage.setItem(K_MISS, JSON.stringify(dbMissions));
+        renderGoals();
+    }
+}
+
+/* ════════════════════════════════
+   BACKUP & RESTORE
+════════════════════════════════ */
+const ALL_KEYS = [
+    // Agenda
+    'josema_rpg_time_v4',
+    'josema_rpg_rec_v4',
+    'lifeos_agenda_pending_v1',
+    'lifeos_agenda_shifts_v1',
+    // Nutrición
+    'josema_rpg_nutri_log',
+    'josema_rpg_nutri_goals',
+    'josema_rpg_foods',
+    'josema_rpg_nutri_recipes',
+    'lifeos_nutri_body_v1',
+    'lifeos_nutri_menu_v1',
+    'lifeos_nutri_menu_plans_v1',
+    // XP & Misiones
+    'josema_rpg_xp_v1',
+    'josema_rpg_missions_v1',
+    // Físico
+    'lifeos_sessions_v1',
+    'lifeos_routines_v1',
+    'lifeos_exercises_v1',
+    'lifeos_prs_v1',
+    'lifeos_active_v1',
+    // Finanzas
+    'lifeos_finances_tx_v1',
+    'lifeos_finances_huchas_v1',
+    'lifeos_finances_pufos_v1',
+    // Hábitos
+    'lifeos_habits_v1',
+    'lifeos_habits_log_v1',
+    // Hábitos rápidos (agua, sueño, pasos)
+    'lifeos_quick_habits_v1',
+]
+
+function exportBackup() {
+    const backup = { version: 1, date: new Date().toISOString(), data: {} };
+    ALL_KEYS.forEach(k => {
+        const val = localStorage.getItem(k);
+        if (val) backup.data[k] = JSON.parse(val);
+    });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href     = url;
+    a.download = `lifeos-backup-${dateStr}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ Copia descargada');
+}
+
+function importBackup(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const status = document.getElementById('import-status');
+        try {
+            const backup = JSON.parse(e.target.result);
+            if (!backup.data) throw new Error('Formato inválido');
+            let count = 0;
+            Object.entries(backup.data).forEach(([k, v]) => {
+                localStorage.setItem(k, JSON.stringify(v));
+                count++;
+            });
+            status.style.display = 'block';
+            status.style.background = 'rgba(82,183,136,0.1)';
+            status.style.color = '#52b788';
+            status.style.border = '1px solid rgba(82,183,136,0.2)';
+            status.textContent = `✓ ${count} módulos restaurados correctamente. Recarga la app para ver los cambios.`;
+            renderDataSummary();
+            // Reload data in memory
+            dbXP = JSON.parse(localStorage.getItem(K_XP)) || { fuerza:{total:0,log:[]}, intel:{total:0,log:[]}, disc:{total:0,log:[]}, riqueza:{total:0,log:[]} };
+            dbMissions = JSON.parse(localStorage.getItem(K_MISS)) || [];
+            runEngine(); renderStats(); renderLog(); renderGoals();
+        } catch(err) {
+            status.style.display = 'block';
+            status.style.background = 'rgba(224,95,95,0.1)';
+            status.style.color = '#e05f5f';
+            status.style.border = '1px solid rgba(224,95,95,0.2)';
+            status.textContent = '✕ Archivo no válido. Asegúrate de usar un archivo exportado desde Life OS.';
+        }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function renderDataSummary() {
+    const el = document.getElementById('data-summary');
+    if (!el) return;
+    const dbTime     = JSON.parse(localStorage.getItem('josema_rpg_time_v4'))   || {};
+    const dbNutri    = JSON.parse(localStorage.getItem('josema_rpg_nutri_log'))  || {};
+    const dbSessions = JSON.parse(localStorage.getItem('lifeos_sessions_v1'))    || [];
+    const dbMiss     = JSON.parse(localStorage.getItem('josema_rpg_missions_v1'))|| [];
+    const dbPRs      = JSON.parse(localStorage.getItem('lifeos_prs_v1'))         || {};
+
+    const taskDays   = Object.keys(dbTime).length;
+    const nutriDays  = Object.keys(dbNutri).length;
+    const totalSess  = dbSessions.length;
+    const totalPRs   = Object.keys(dbPRs).length;
+
+    const tile = (label, val, color) => `
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-family:'DM Serif Display',serif;font-size:26px;color:${color}">${val}</div>
+            <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px">${label}</div>
+        </div>`;
+
+    el.innerHTML =
+        tile('Días en agenda',    taskDays,  'var(--a1)') +
+        tile('Días nutrición',    nutriDays, 'var(--a2)') +
+        tile('Entrenos',          totalSess, 'var(--a3)') +
+        tile('Records (PR)',      totalPRs,  'var(--a4)');
+}
+
+/* ── INIT ── */
+runEngine();
+renderStats();
+renderLog();
+renderGoals();
+renderDataSummary();
+
+// Splash screen
+(function() {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+    const shown = sessionStorage.getItem('lifeos_splash');
+    if (shown) { splash.style.display = 'none'; return; }
+    setTimeout(() => {
+        splash.classList.add('hide');
+        setTimeout(() => { splash.style.display = 'none'; }, 500);
+        sessionStorage.setItem('lifeos_splash', '1');
+    }, 1600);
+})();
+
+
+/* ── QUICK HABITS (water, sleep, steps) ── */
+const K_QH = 'lifeos_quick_habits_v1';
+let quickHabitsDB = JSON.parse(localStorage.getItem(K_QH)) || {};
+
+function todayQH() {
+    const d = getStr(realToday);
+    if (!quickHabitsDB[d]) quickHabitsDB[d] = { water: 0, sleep: 0, steps: 0 };
+    return quickHabitsDB[d];
+}
+
+function adjHabit(key, delta) {
+    const d = getStr(realToday);
+    const today = todayQH();
+    today[key] = Math.max(0, +(today[key] + delta).toFixed(1));
+    quickHabitsDB[d] = today;
+    localStorage.setItem(K_QH, JSON.stringify(quickHabitsDB));
+    renderQuickHabits();
+}
+
+function renderQuickHabits() {
+    const t = todayQH();
+    const wEl = document.getElementById('qs-water');
+    const sEl = document.getElementById('qs-sleep');
+    const pEl = document.getElementById('qs-steps');
+    if (wEl) wEl.textContent = t.water.toFixed(1);
+    if (sEl) sEl.textContent = t.sleep.toFixed(1);
+    if (pEl) pEl.textContent = (t.steps >= 1000 ? (t.steps/1000).toFixed(1)+'k' : t.steps);
+}
+
+renderQuickHabits();
+
+</script>
+
+    <!-- Físico quick access (not in main nav) -->
+    <div style="position:fixed;bottom:90px;right:16px;z-index:999">
+        <div onclick="go('fisico.html')" style="background:linear-gradient(145deg,#e07a5f,#c96040);
+            color:#fff;border-radius:14px;padding:10px 14px;font-size:12px;font-weight:700;
+            font-family:'DM Sans',sans-serif;cursor:pointer;
+            box-shadow:0 4px 20px rgba(224,122,95,0.45);
+            display:flex;align-items:center;gap:6px">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Físico
+        </div>
+    </div>
+
+</body>
+</html>

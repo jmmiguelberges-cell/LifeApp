@@ -1,0 +1,51 @@
+{
+  "name": "Life OS",
+  "short_name": "Life OS",
+  "description": "Tu sistema de vida personal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111318",
+  "theme_color": "#111318",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icono.jpg", "sizes": "192x192", "type": "image/jpeg" },
+    { "src": "icono.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agenda",
+      "short_name": "Agenda",
+      "description": "Planificación y tareas",
+      "url": "/agenda.html",
+      "icons": [{ "src": "icono.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hábitos",
+      "short_name": "Hábitos",
+      "description": "Tracker de hábitos diarios",
+      "url": "/habitos.html",
+      "icons": [{ "src": "icono.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nutrición",
+      "short_name": "Nutrición",
+      "description": "Diario nutricional",
+      "url": "/nutricion.html",
+      "icons": [{ "src": "icono.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Físico",
+      "short_name": "Físico",
+      "description": "Entrenamientos y progreso",
+      "url": "/fisico.html",
+      "icons": [{ "src": "icono.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Finanzas",
+      "short_name": "Finanzas",
+      "description": "Control financiero",
+      "url": "/finanzas.html",
+      "icons": [{ "src": "icono.jpg", "sizes": "192x192" }]
+    }
+  ]
+}

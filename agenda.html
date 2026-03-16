@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Life OS — Agenda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeRPG/icono.jpg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="lifeos.css">
+    <style>
+        :root {
+            --bg:    #111318;
+            --s1:    #191c22;
+            --s2:    #1f2229;
+            --s3:    #252830;
+            --border: rgba(255,255,255,0.07);
+            --border2: rgba(255,255,255,0.12);
+            --text:  #e8e9ee;
+            --sub:   #8a8d96;
+            --dim:   #4a4d56;
+            --acc:   #5b8af0;
+            --acc2:  #3a6bd4;
+            --red:   #e05f5f;
+            --yellow:#c9a84c;
+            --green: #52b788;
+            --purple:#9b7fe0;
+        }
+        * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+        body {
+            background:var(--bg); color:var(--text);
+            font-family:'DM Sans',sans-serif;
+            overflow:hidden; height:100dvh;
+            display:flex; flex-direction:column;
+            -webkit-user-select:none; font-size:15px;
+        }
+
+        /* ── SCROLL ── */
+        #sw { flex:1; overflow-y:auto; overflow-x:hidden; padding-bottom:92px; }
+        #sw::-webkit-scrollbar { display:none; }
+
+        /* ── HEADER ── */
+        .page-header {
+            padding:52px 20px 0;
+            background:var(--bg);
+            border-bottom:1px solid var(--border);
+        }
+        .page-module {
+            font-size:11px; font-weight:600;
+            color:var(--acc); letter-spacing:0.3px;
+            margin-bottom:3px;
+        }
+        .page-title {
+            font-family:'DM Serif Display',serif;
+            font-size:26px; font-weight:400; color:var(--text);
+            line-height:1.15; margin-bottom:14px;
+        }
+
+        /* ── TAB BAR ── */
+        .tab-bar {
+            display:flex; gap:0;
+            overflow-x:auto;
+        }
+        .tab-bar::-webkit-scrollbar { display:none; }
+        .tab-btn {
+            flex:1; min-width:0;
+            padding:10px 4px 10px;
+            font-family:'DM Sans',sans-serif;
+            font-size:13px; font-weight:500;
+            color:var(--dim);
+            border-bottom:2px solid transparent;
+            text-align:center;
+            cursor:pointer;
+            transition:color 0.2s, border-color 0.2s;
+            white-space:nowrap;
+        }
+        .tab-btn.active { color:var(--acc); border-bottom:3px solid var(--acc); padding-bottom:9px; }
+
+        /* ── VIEWS ── */
+        .view { display:none; padding:16px; animation:up 0.2s ease both; }
+        .view.active { display:block; }
+        @keyframes up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ══════════════════════
+           CALENDAR
+        ══════════════════════ */
+        .month-nav {
+            display:flex; align-items:center;
+            justify-content:space-between; margin-bottom:14px;
+        }
+        .month-title {
+            font-family:'DM Serif Display',serif;
+            font-size:20px; font-weight:400; color:var(--text);
+        }
+        .nav-arrow {
+            width:34px; height:34px; border-radius:10px;
+            background:var(--s1); border:1px solid var(--border);
+            color:var(--sub); font-size:16px;
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; transition:background 0.15s;
+        }
+        .nav-arrow:active { background:var(--s2); }
+
+        .dow-row {
+            display:grid; grid-template-columns:repeat(7,1fr);
+            margin-bottom:6px;
+        }
+        .dow-cell {
+            text-align:center;
+            font-size:10px; font-weight:600;
+            color:var(--dim); letter-spacing:0.5px;
+            text-transform:uppercase; padding:4px 0;
+        }
+
+        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:1fr; gap:2px; }
+        .cal-grid::before { content:""; width:0; padding-bottom:100%; grid-row:1; grid-column:1; display:none; }
+        .cal-cell {
+            aspect-ratio:1;
+            min-width:0;
+            background:var(--s1); border-radius:10px;
+            border:1px solid var(--border);
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            font-size:13px; font-weight:500; color:var(--sub);
+            cursor:pointer; position:relative;
+            transition:background 0.15s, border-color 0.15s, transform 0.12s;
+        }
+        .cal-cell:hover:not(.empty) { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
+        .cal-cell:active { transform:scale(0.93); }
+        .cal-cell.empty { background:var(--s1); border:1px solid var(--border); pointer-events:none; opacity:0.18; }
+        .cal-cell.today {
+            background:rgba(91,138,240,0.1);
+            border-color:rgba(91,138,240,0.35);
+            color:var(--acc); font-weight:700;
+        }
+        .cal-cell.has-tasks::after {
+            content:'';
+            position:absolute; bottom:5px;
+            width:4px; height:4px; border-radius:50%;
+        }
+        .cal-cell.dot-blue::after   { background:var(--acc); }
+        .cal-cell.dot-red::after    { background:var(--red); }
+        .cal-cell.dot-yellow::after { background:var(--yellow); }
+        .cal-cell.dot-purple::after { background:var(--purple); }
+        .cal-cell.dot-green::after  { background:var(--green); }
+
+        /* ══════════════════════
+           WEEK VIEW
+        ══════════════════════ */
+        .week-form {
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:16px; padding:16px; margin-bottom:14px;
+        }
+        .form-label {
+            font-size:11px; font-weight:600;
+            color:var(--dim); letter-spacing:0.5px;
+            text-transform:uppercase; margin-bottom:12px;
+        }
+        .week-day-card {
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:14px; margin-bottom:8px; overflow:hidden;
+        }
+        .week-day-head {
+            padding:10px 14px;
+            border-bottom:1px solid var(--border);
+            font-size:11px; font-weight:600;
+            color:var(--sub); letter-spacing:0.5px;
+            text-transform:uppercase;
+        }
+        .week-task-row {
+            display:flex; align-items:center; gap:10px;
+            padding:11px 14px;
+            border-bottom:1px solid rgba(255,255,255,0.03);
+        }
+        .week-task-row:last-child { border-bottom:none; }
+        .wt-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .wt-text { flex:1; font-size:13px; font-weight:500; color:var(--text); }
+        .btn-del-sm {
+            width:26px; height:26px; border-radius:7px; flex-shrink:0;
+            background:rgba(224,95,95,0.08); color:var(--red);
+            border:1px solid rgba(224,95,95,0.15);
+            font-size:11px; font-weight:700;
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; transition:background 0.15s;
+        }
+        .btn-del-sm:active { background:rgba(224,95,95,0.18); }
+
+        /* ══════════════════════
+           DAY VIEW
+        ══════════════════════ */
+        .day-nav {
+            display:flex; align-items:center;
+            justify-content:space-between; margin-bottom:14px;
+        }
+        .day-title {
+            font-family:'DM Serif Display',serif;
+            font-size:18px; font-weight:400; color:var(--text);
+        }
+        .day-sub-title {
+            font-size:11px; color:var(--sub); margin-top:1px; font-weight:500;
+        }
+        .shift-banner {
+            display:flex; align-items:center; gap:10px;
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:12px; padding:11px 14px; margin-bottom:14px;
+        }
+        .shift-label { font-size:11px; font-weight:600; color:var(--dim); text-transform:uppercase; letter-spacing:0.5px; }
+        .shift-value { font-size:14px; font-weight:600; margin-top:1px; }
+
+        /* Add task form */
+        .add-task-form {
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:14px; padding:14px; margin-bottom:16px;
+        }
+        .inp {
+            width:100%; background:var(--s2); border:1px solid var(--border);
+            color:var(--text); border-radius:10px;
+            padding:10px 13px; font-size:14px;
+            font-family:'DM Sans',sans-serif; font-weight:400;
+            margin-bottom:8px;
+        }
+        .inp:focus { outline:none; border-color:var(--border2); }
+        .inp::placeholder { color:var(--dim); }
+        .inp-row { display:flex; gap:8px; margin-bottom:8px; }
+        .inp-row .inp { flex:1; margin-bottom:0; }
+        .inp-time { flex:0 0 96px; text-align:center; }
+        select.inp { cursor:pointer; }
+        select.inp option { background:#1f2229; color:#e8e9ee; }
+
+        .btn-primary {
+            width:100%; background:var(--acc);
+            color:#fff; font-family:'DM Sans',sans-serif;
+            font-size:14px; font-weight:600;
+            padding:11px; border-radius:10px;
+            transition:opacity 0.15s, transform 0.15s;
+            box-shadow:0 2px 12px rgba(91,138,240,0.25);
+        }
+        .btn-primary:active { opacity:0.8; transform:scale(0.98); }
+
+        /* Task item */
+        .task-item {
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:14px; padding:13px 14px;
+            margin-bottom:8px; position:relative;
+            overflow:hidden; transition:border-color 0.2s;
+        }
+        .task-item.done { opacity:0.45; }
+
+        /* Left stripe */
+        .task-stripe {
+            position:absolute; left:0; top:10px; bottom:10px;
+            width:3px; border-radius:0 3px 3px 0;
+        }
+
+        .task-top { display:flex; align-items:flex-start; gap:10px; }
+        .task-text {
+            flex:1; font-size:14px; font-weight:500; color:var(--text);
+            line-height:1.35;
+        }
+        .task-text.done-text { text-decoration:line-through; color:var(--dim); }
+        .task-actions { display:flex; gap:6px; align-items:center; }
+
+        .task-meta { display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; padding-left:0; }
+        .task-tag {
+            font-size:11px; font-weight:600;
+            padding:2px 8px; border-radius:6px;
+        }
+        .tag-overdue { background:rgba(224,95,95,0.1); color:var(--red); }
+        .tag-time    { background:rgba(91,138,240,0.1); color:var(--acc); }
+        .tag-fixed   { background:rgba(255,255,255,0.05); color:var(--dim); }
+
+        .btn-check {
+            width:28px; height:28px; border-radius:8px;
+            border:1.5px solid var(--border2);
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; cursor:pointer; flex-shrink:0;
+            transition:background 0.15s, border-color 0.15s;
+        }
+        .btn-check.checked { background:#166534; border-color:var(--green); color:#4ade80; }
+        .btn-del-task {
+            width:28px; height:28px; border-radius:8px; flex-shrink:0;
+            background:rgba(224,95,95,0.08); color:var(--red);
+            border:1px solid rgba(224,95,95,0.15);
+            font-size:11px; font-weight:700;
+            display:flex; align-items:center; justify-content:center; cursor:pointer;
+        }
+        .btn-del-task:active { background:rgba(224,95,95,0.18); }
+        .btn-sub {
+            font-size:10px; font-weight:600;
+            padding:0 9px; height:28px; border-radius:8px;
+            background:rgba(255,255,255,0.05); color:var(--sub);
+            border:1px solid var(--border); cursor:pointer;
+            display:flex; align-items:center; white-space:nowrap;
+        }
+
+        /* Subtasks */
+        .subtask-wrap {
+            border-left:2px solid rgba(255,255,255,0.07);
+            margin-left:4px; padding-left:12px; margin-top:10px;
+        }
+        .subtask-row {
+            display:flex; align-items:center; gap:8px;
+            margin-bottom:7px;
+        }
+        .subtask-text {
+            flex:1; font-size:12px; font-weight:400; color:var(--sub);
+            line-height:1.3;
+        }
+        .subtask-text.done { text-decoration:line-through; color:var(--dim); }
+
+        /* Progress bar for day */
+        .day-progress {
+            display:flex; align-items:center; gap:10px;
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:12px; padding:12px 14px; margin-bottom:14px;
+        }
+        .dp-label { font-size:12px; font-weight:600; color:var(--sub); flex-shrink:0; }
+        .dp-track {
+            flex:1; height:4px; background:rgba(255,255,255,0.06);
+            border-radius:99px; overflow:hidden;
+        }
+        .dp-fill {
+            height:100%; background:var(--acc); border-radius:99px;
+            transition:width 0.4s ease;
+        }
+        .dp-count { font-size:12px; font-weight:600; color:var(--acc); flex-shrink:0; }
+
+        /* Empty */
+        .empty { text-align:center; padding:32px 0; font-size:13px; color:var(--dim); }
+
+        /* Section label */
+        .sec-label {
+            font-size:11px; font-weight:600;
+            color:var(--dim); letter-spacing:0.5px;
+            text-transform:uppercase; margin-bottom:10px;
+        }
+
+        /* ══════════════════════
+           NAV BAR
+        ══════════════════════ */
+        .nav-bar {
+            position:fixed; bottom:0; width:100%;
+            background:rgba(13,15,19,0.96);
+            border-top:1px solid var(--border);
+            padding:10px 0 26px;
+            display:flex; align-items:center;
+            backdrop-filter:blur(20px) saturate(1.8);
+            z-index:1000;
+        }
+        .nav-item {
+            flex:1; display:flex; flex-direction:column; align-items:center;
+            gap:4px; cursor:pointer; color:var(--dim);
+            transition:color 0.2s; padding:2px 0;
+            font-size:7px; font-weight:600;
+            letter-spacing:0.5px; text-transform:uppercase;
+        }
+        .nav-item.active { color:var(--acc); }
+        .nav-item:active { opacity:0.6; }
+        .nav-item svg { width:20px; height:20px; margin-bottom:1px; }
+        .nav-center {
+            flex:0 0 64px;
+            display:flex; flex-direction:column; align-items:center;
+            cursor:pointer; margin-top:-18px;
+        }
+        .nav-home {
+            width:48px; height:48px; border-radius:14px;
+            background:var(--acc);
+            display:flex; align-items:center; justify-content:center; font-size:22px;
+            box-shadow:0 4px 20px rgba(91,138,240,0.35), 0 1px 0 rgba(255,255,255,0.1) inset;
+            transition:transform 0.15s;
+        }
+        .nav-home:active { transform:scale(0.9); }
+        .nav-center-label {
+            font-size:7px; font-weight:600; color:var(--acc);
+            margin-top:5px; letter-spacing:0.5px; text-transform:uppercase;
+        }
+
+        /* Stagger */
+        .s0 { opacity:0; animation:up 0.35s 0.00s ease forwards; }
+        .s1 { opacity:0; animation:up 0.35s 0.06s ease forwards; }
+        .s2 { opacity:0; animation:up 0.35s 0.12s ease forwards; }
+    </style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+    <div class="splash-icon">⚡</div>
+    <div class="splash-name">Life OS</div>
+    <div class="splash-sub">Tu sistema de vida</div>
+    <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+
+<div class="page-header s0">
+    <div class="page-module">Agenda</div>
+    <div class="page-title">Planificación</div>
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('month',this)">Mes</button>
+        <button class="tab-btn" onclick="switchTab('week',this)">Semana</button>
+        <button class="tab-btn" onclick="switchTab('day',this)">Día</button>
+        <button class="tab-btn" onclick="switchTab('pending',this)" id="tab-pending-btn">Pendientes</button>
+        <button class="tab-btn" onclick="switchTab('shifts',this)">Turnos</button>
+    </div>
+</div>
+
+<div id="sw">
+
+    <!-- MES -->
+    <div id="view-month" class="view active s1">
+        <div class="month-nav">
+            <button class="nav-arrow" onclick="changeMonth(-1)">‹</button>
+            <div class="month-title" id="month-display">Mes Año</div>
+            <button class="nav-arrow" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="dow-row">
+            <div class="dow-cell">L</div><div class="dow-cell">M</div>
+            <div class="dow-cell">X</div><div class="dow-cell">J</div>
+            <div class="dow-cell">V</div><div class="dow-cell">S</div>
+            <div class="dow-cell">D</div>
+        </div>
+        <div id="cal-grid" class="cal-grid"></div>
+    </div>
+
+    <!-- SEMANA -->
+    <div id="view-week" class="view s1">
+        <div class="week-form">
+            <div class="form-label">Nueva tarea fija</div>
+            <select id="rec-day" class="inp">
+                <option value="1">Lunes</option><option value="2">Martes</option>
+                <option value="3">Miércoles</option><option value="4">Jueves</option>
+                <option value="5">Viernes</option><option value="6">Sábado</option>
+                <option value="0">Domingo</option>
+            </select>
+            <input type="text" id="rec-task" class="inp" placeholder="Descripción de la tarea...">
+            <select id="rec-color" class="inp">
+                <option value="blue">Azul — Normal</option>
+                <option value="red">Rojo — Urgente</option>
+                <option value="yellow">Amarillo — Estudio</option>
+                <option value="purple">Morado — Físico</option>
+                <option value="green">Verde — Finanzas</option>
+            </select>
+            <button class="btn-primary" onclick="addRecurring()">Añadir tarea fija</button>
+        </div>
+        <div id="week-list"></div>
+    </div>
+
+    <!-- DÍA -->
+    <div id="view-day" class="view s1">
+        <div class="day-nav">
+            <button class="nav-arrow" onclick="changeDay(-1)">‹</button>
+            <div class="text-center">
+                <div class="day-title" id="day-title">Cargando...</div>
+                <div class="day-sub-title" id="day-year"></div>
+            </div>
+            <button class="nav-arrow" onclick="changeDay(1)">›</button>
+        </div>
+
+        <div class="shift-banner">
+            <span style="font-size:18px">🏭</span>
+            <div>
+                <div class="shift-label">Turno</div>
+                <div class="shift-value" id="shift-val">—</div>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="day-progress" id="day-progress" style="display:none">
+            <div class="dp-label" id="dp-label">0 / 0</div>
+            <div class="dp-track"><div class="dp-fill" id="dp-fill" style="width:0%"></div></div>
+            <div class="dp-count" id="dp-pct">0%</div>
+        </div>
+
+        <!-- Add form -->
+        <div class="add-task-form">
+            <div class="form-label" style="margin-bottom:10px">Nueva tarea</div>
+            <input type="text" id="new-task" class="inp" placeholder="¿Qué tienes que hacer?">
+            <div class="inp-row">
+                <input type="time" id="new-time" class="inp inp-time">
+                <select id="new-color" class="inp">
+                    <option value="blue">Azul</option>
+                    <option value="red">Rojo — Urgente</option>
+                    <option value="yellow">Amarillo — Estudio</option>
+                    <option value="purple">Morado — Físico</option>
+                    <option value="green">Verde</option>
+                </select>
+                <button onclick="addTask()" style="flex:0 0 44px;background:var(--acc);color:#fff;border-radius:10px;font-size:20px;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(91,138,240,0.25)">+</button>
+            </div>
+        </div>
+
+        <div class="sec-label">Tareas del día</div>
+        <div id="day-list"></div>
+    </div>
+
+
+    <!-- PENDIENTES -->
+    <div id="view-pending" class="view s1">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.5">
+            Tareas sin fecha asignada. Cuando decidas el día, pásalas al calendario.
+        </div>
+
+        <!-- Add pending task -->
+        <div class="task-form" style="margin-bottom:12px">
+            <div class="inp-row">
+                <input class="inp" id="pend-text" type="text" placeholder="Tarea pendiente...">
+                <select class="inp" id="pend-color" style="flex:0 0 58px;font-size:16px;text-align:center">
+                    <option value="blue">🔵</option>
+                    <option value="yellow">🟡</option>
+                    <option value="red">🔴</option>
+                    <option value="green">🟢</option>
+                    <option value="purple">🟣</option>
+                </select>
+            </div>
+            <input class="inp" id="pend-note" type="text" placeholder="Nota opcional...">
+            <button class="btn-primary" onclick="addPendingTask()">+ Añadir pendiente</button>
+        </div>
+
+        <div id="pending-list"></div>
+    </div>
+
+    <!-- TURNOS -->
+    <div id="view-shifts" class="view s1">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.5">
+            Registra tus turnos para que aparezcan en el calendario. TM = Mañana · TT = Tarde · TN = Noche · L = Libre.
+        </div>
+
+        <!-- Quick assign -->
+        <div class="sec-label">Asignar turno rápido</div>
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
+            <div class="month-nav" style="margin-bottom:12px">
+                <button class="nav-arrow" onclick="changeShiftMonth(-1)">‹</button>
+                <div class="month-title" id="shift-month-display">Mes Año</div>
+                <button class="nav-arrow" onclick="changeShiftMonth(1)">›</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px">
+                <div class="dow-cell">L</div><div class="dow-cell">M</div>
+                <div class="dow-cell">X</div><div class="dow-cell">J</div>
+                <div class="dow-cell">V</div><div class="dow-cell">S</div>
+                <div class="dow-cell">D</div>
+            </div>
+            <div id="shift-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
+        </div>
+
+        <!-- Bulk assign -->
+        <div class="sec-label">Asignar bloque de días</div>
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:11px;font-weight:600;color:var(--dim);width:32px;flex-shrink:0">DE</span>
+                    <input class="inp" id="bulk-from" type="date" style="margin-bottom:0;font-size:13px;flex:1;min-width:0">
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:11px;font-weight:600;color:var(--dim);width:32px;flex-shrink:0">A</span>
+                    <input class="inp" id="bulk-to" type="date" style="margin-bottom:0;font-size:13px;flex:1;min-width:0">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
+                <button onclick="bulkShift('TM')" style="padding:10px 4px;border-radius:10px;font-size:13px;font-weight:700;
+                    background:rgba(91,138,240,0.1);color:var(--blue);border:1px solid rgba(91,138,240,0.2);
+                    font-family:'DM Sans',sans-serif">TM</button>
+                <button onclick="bulkShift('TT')" style="padding:10px 4px;border-radius:10px;font-size:13px;font-weight:700;
+                    background:rgba(201,168,76,0.1);color:var(--yellow);border:1px solid rgba(201,168,76,0.2);
+                    font-family:'DM Sans',sans-serif">TT</button>
+                <button onclick="bulkShift('TN')" style="padding:10px 4px;border-radius:10px;font-size:13px;font-weight:700;
+                    background:rgba(155,127,224,0.1);color:var(--purple);border:1px solid rgba(155,127,224,0.2);
+                    font-family:'DM Sans',sans-serif">TN</button>
+                <button onclick="bulkShift('L')" style="padding:10px 4px;border-radius:10px;font-size:13px;font-weight:700;
+                    background:rgba(82,183,136,0.1);color:var(--green);border:1px solid rgba(82,183,136,0.2);
+                    font-family:'DM Sans',sans-serif">L</button>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px">
+            <div class="sec-label" style="margin-bottom:10px">Leyenda</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span style="font-weight:700;color:var(--blue);font-size:11px;background:rgba(91,138,240,0.1);border:1px solid rgba(91,138,240,0.2);border-radius:5px;padding:2px 7px">TM</span>
+                    <span style="color:var(--sub)">Turno Mañana</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span style="font-weight:700;color:var(--yellow);font-size:11px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);border-radius:5px;padding:2px 7px">TT</span>
+                    <span style="color:var(--sub)">Turno Tarde</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span style="font-weight:700;color:var(--purple);font-size:11px;background:rgba(155,127,224,0.1);border:1px solid rgba(155,127,224,0.2);border-radius:5px;padding:2px 7px">TN</span>
+                    <span style="color:var(--sub)">Turno Noche</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                    <span style="font-weight:700;color:var(--green);font-size:11px;background:rgba(82,183,136,0.1);border:1px solid rgba(82,183,136,0.2);border-radius:5px;padding:2px 7px">L</span>
+                    <span style="color:var(--sub)">Libre</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<nav class="nav-bar">
+    <div class="nav-item active" style="color:#5b8af0">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Agenda
+    </div>
+    <div class="nav-item" onclick="go('habitos.html')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+        Hábitos
+    </div>
+    <div class="nav-center" onclick="go('index.html')">
+        <div class="nav-home" style="background:linear-gradient(145deg,#5b8af0dd,#5b8af099)">👤</div>
+        <div class="nav-center-label">Inicio</div>
+    </div>
+    <div class="nav-item" onclick="go('nutricion.html')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Nutrición
+    </div>
+    <div class="nav-item" onclick="go('finanzas.html')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Finanzas
+    </div>
+</nav>
+
+<script>
+function go(p) { window.location.replace(p); }
+
+/* ── DB ── */
+let dbTime      = JSON.parse(localStorage.getItem('josema_rpg_time_v4'))  || {};
+let dbRecurring = JSON.parse(localStorage.getItem('josema_rpg_rec_v4'))   || {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
+const K_PENDING = 'lifeos_agenda_pending_v1';
+const K_SHIFTS  = 'lifeos_agenda_shifts_v1';
+let dbPending = JSON.parse(localStorage.getItem(K_PENDING)) || [];
+let dbShifts  = JSON.parse(localStorage.getItem(K_SHIFTS))  || {};
+function savePending() { localStorage.setItem(K_PENDING, JSON.stringify(dbPending)); }
+function saveShifts()  { localStorage.setItem(K_SHIFTS,  JSON.stringify(dbShifts)); }
+
+const MONTHS  = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const DAYS    = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const realToday = new Date();
+
+const COLOR_HEX = { blue:'#5b8af0', red:'#e05f5f', yellow:'#c9a84c', purple:'#9b7fe0', green:'#52b788' };
+const COLOR_CSS = { blue:'var(--acc)', red:'var(--red)', yellow:'var(--yellow)', purple:'var(--purple)', green:'var(--green)' };
+
+let viewMonth = new Date();
+let selDay    = new Date();
+
+function getStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+/* ── ROLLOVER ── */
+(function rollover() {
+    const ts = getStr(realToday);
+    if (!dbTime[ts]) dbTime[ts] = [];
+    let changed = false;
+    for (const k in dbTime) {
+        if (k < ts) {
+            const pending = dbTime[k].filter(t=>!t.done);
+            const done    = dbTime[k].filter(t=>t.done);
+            if (pending.length) {
+                pending.forEach(t=>{ t.isOverdue=true; t.time=''; dbTime[ts].push(t); });
+                dbTime[k] = done.length ? done : undefined;
+                if (!dbTime[k]) delete dbTime[k];
+                changed = true;
+            }
+        }
+    }
+    if (changed) localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
+})();
+
+/* ── TABS ── */
+function switchTab(view, el) {
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById(`view-${view}`).classList.add('active');
+    el.classList.add('active');
+    if (view==='month')   renderCal();
+    if (view==='week')    renderWeek();
+    if (view==='day')     renderDay();
+    if (view==='pending') renderPending();
+    if (view==='shifts')  renderShiftCal();
+}
+
+/* ══ CALENDAR ══ */
+function dotClass(dateStr, dow) {
+    let cols = [];
+    if (dbRecurring[dow]) dbRecurring[dow].forEach(r=>cols.push(r.color));
+    if (dbTime[dateStr])  dbTime[dateStr].forEach(t=>{ if(!t.done) cols.push(t.color); });
+    if (!cols.length) return '';
+    if (cols.includes('red'))    return 'has-tasks dot-red';
+    if (cols.includes('purple')) return 'has-tasks dot-purple';
+    if (cols.includes('yellow')) return 'has-tasks dot-yellow';
+    if (cols.includes('green'))  return 'has-tasks dot-green';
+    return 'has-tasks dot-blue';
+}
+
+function renderCal() {
+    const y=viewMonth.getFullYear(), m=viewMonth.getMonth();
+    document.getElementById('month-display').textContent = `${MONTHS[m]} ${y}`;
+    const grid=document.getElementById('cal-grid'); grid.innerHTML='';
+    const firstDow = new Date(y,m,1).getDay();
+    const daysInMonth = new Date(y,m+1,0).getDate();
+    const start = firstDow===0 ? 6 : firstDow-1;
+    for (let i=0;i<start;i++) grid.innerHTML+=`<div class="cal-cell empty"></div>`;
+    for (let d=1;d<=daysInMonth;d++) {
+        const iter  = new Date(y,m,d,12,0,0);
+        const dStr  = getStr(iter);
+        const dow   = iter.getDay();
+        const today = dStr===getStr(realToday);
+        const dc    = dotClass(dStr,dow);
+        const shift = dbShifts[dStr];
+        const shiftColors = { TM:'#5b8af0', TT:'#c9a84c', TN:'#9b7fe0', L:'#52b788' };
+        const shiftHtml = shift ? `<div style="font-size:8px;font-weight:700;color:${shiftColors[shift]||'#8a8d96'};line-height:1;margin-top:1px">${shift}</div>` : '';
+        grid.innerHTML+=`
+            <div onclick="pickDay(${y},${m},${d})" class="cal-cell ${today?'today':''} ${dc}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0">
+                <div style="font-size:12px;line-height:1">${d}</div>
+                ${shiftHtml}
+            </div>`;
+    }
+}
+function changeMonth(s) { viewMonth.setMonth(viewMonth.getMonth()+s); renderCal(); }
+function pickDay(y,m,d) {
+    selDay = new Date(y,m,d,12,0,0);
+    viewMonth = new Date(y,m,d,12,0,0);
+    document.querySelectorAll('.tab-btn')[2].click();
+}
+
+/* ══ WEEK ══ */
+function renderWeek() {
+    const list=document.getElementById('week-list'); list.innerHTML='';
+    const order=[1,2,3,4,5,6,0]; let any=false;
+    order.forEach(dow=>{
+        const tasks=dbRecurring[dow]||[];
+        if (!tasks.length) return;
+        any=true;
+        const rows=tasks.map((t,idx)=>`
+            <div class="week-task-row">
+                <div class="wt-dot" style="background:${COLOR_HEX[t.color]||COLOR_HEX.blue}"></div>
+                <span class="wt-text">${t.text}</span>
+                <button class="btn-del-sm" onclick="delRecurring(${dow},${idx})">✕</button>
+            </div>`).join('');
+        list.innerHTML+=`
+            <div class="week-day-card">
+                <div class="week-day-head" style="border-left:3px solid ${COLOR_HEX[tasks[0].color]||COLOR_HEX.blue};padding-left:11px">${DAYS[dow]}</div>
+                ${rows}
+            </div>`;
+    });
+    if (!any) list.innerHTML=`<div class="empty">Sin tareas fijas. Añade la primera.</div>`;
+}
+function addRecurring() {
+    const day  = document.getElementById('rec-day').value;
+    const text = document.getElementById('rec-task').value.trim();
+    const color= document.getElementById('rec-color').value;
+    if (!text) return;
+    dbRecurring[day].push({text,color});
+    localStorage.setItem('josema_rpg_rec_v4',JSON.stringify(dbRecurring));
+    document.getElementById('rec-task').value='';
+    renderWeek();
+}
+function delRecurring(dow,idx) {
+    dbRecurring[dow].splice(idx,1);
+    localStorage.setItem('josema_rpg_rec_v4',JSON.stringify(dbRecurring));
+    renderWeek();
+}
+
+/* ══ DAY ══ */
+function renderDay() {
+    const dStr = getStr(selDay);
+    const dow  = selDay.getDay();
+    document.getElementById('day-title').textContent = `${DAYS[dow]}, ${selDay.getDate()} ${MONTHS[selDay.getMonth()]}`;
+    document.getElementById('day-year').textContent  = selDay.getFullYear();
+
+    const sv = document.getElementById('shift-val');
+    const shiftForDay = dbShifts[dStr];
+    const shiftLabels = { TM:'Mañana', TT:'Tarde', TN:'Noche', L:'Libre' };
+    const shiftCols   = { TM:'var(--blue)', TT:'var(--yellow)', TN:'var(--purple)', L:'var(--green)' };
+    if (shiftForDay) {
+        sv.textContent = shiftLabels[shiftForDay] || shiftForDay;
+        sv.style.color = shiftCols[shiftForDay]  || 'var(--dim)';
+    } else {
+        sv.textContent = dow>=1&&dow<=5 ? 'Tarde' : 'Libre';
+        sv.style.color = dow>=1&&dow<=5 ? 'var(--yellow)' : 'var(--green)';
+    }
+
+    const list  = document.getElementById('day-list');
+    const tasks = (dbTime[dStr]||[]).slice().sort((a,b)=>{
+        if (!a.time&&!b.time) return 0;
+        if (!a.time) return -1;
+        if (!b.time) return 1;
+        return a.time.localeCompare(b.time);
+    });
+    const fixed = dbRecurring[dow]||[];
+
+    // Progress bar
+    const total = tasks.length;
+    const done  = tasks.filter(t=>t.done).length;
+    const prog  = document.getElementById('day-progress');
+    if (total > 0) {
+        prog.style.display='flex';
+        document.getElementById('dp-label').textContent = `${done} / ${total}`;
+        document.getElementById('dp-fill').style.width  = `${(done/total*100).toFixed(0)}%`;
+        document.getElementById('dp-pct').textContent   = `${(done/total*100).toFixed(0)}%`;
+    } else { prog.style.display='none'; }
+
+    list.innerHTML='';
+
+    // Fixed tasks (read-only)
+    fixed.forEach(t=>{
+        const c=COLOR_HEX[t.color]||COLOR_HEX.blue;
+        list.innerHTML+=`
+        <div class="task-item">
+            <div class="task-stripe" style="background:${c}"></div>
+            <div class="task-top">
+                <div class="task-text" style="padding-left:8px">${t.text}</div>
+                <span class="task-tag tag-fixed">Fija</span>
+            </div>
+        </div>`;
+    });
+
+    // Day tasks
+    tasks.forEach((t,idx)=>{
+        const c=COLOR_HEX[t.color]||COLOR_HEX.blue;
+        let subs='';
+        if (t.subtasks&&t.subtasks.length) {
+            subs=`<div class="subtask-wrap">`+
+                t.subtasks.map((s,si)=>`
+                <div class="subtask-row">
+                    <span class="subtask-text ${s.done?'done':''}">${s.text}</span>
+                    <button onclick="toggleSub(${idx},${si})" style="width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--sub);font-size:10px;cursor:pointer">✓</button>
+                    <button onclick="delSub(${idx},${si})" style="width:22px;height:22px;border-radius:6px;background:rgba(224,95,95,0.08);border:1px solid rgba(224,95,95,0.15);color:var(--red);font-size:10px;cursor:pointer">✕</button>
+                </div>`).join('')+
+            `</div>`;
+        }
+        list.innerHTML+=`
+        <div class="task-item ${t.done?'done':''}">
+            <div class="task-stripe" style="background:${c}"></div>
+            <div class="task-top">
+                <div style="flex:1;padding-left:8px">
+                    <div class="task-text ${t.done?'done-text':''}">${t.text}</div>
+                    <div class="task-meta">
+                        ${t.isOverdue?`<span class="task-tag tag-overdue">Atrasada</span>`:''}
+                        ${t.time?`<span class="task-tag tag-time">🕒 ${t.time}</span>`:''}
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <button class="btn-sub" onclick="addSub(${idx})">+ paso</button>
+                    <button class="btn-check ${t.done?'checked':''}" onclick="toggleTask(${idx})">✓</button>
+                    <button class="btn-del-task" onclick="delTask(${idx})">✕</button>
+                </div>
+            </div>
+            ${subs}
+        </div>`;
+    });
+
+    if (!fixed.length&&!tasks.length) {
+        list.innerHTML=`<div class="empty">Sin tareas para este día.<br>Añade la primera arriba.</div>`;
+    }
+}
+
+function changeDay(s) { selDay.setDate(selDay.getDate()+s); viewMonth=new Date(selDay); renderDay(); }
+
+function addTask() {
+    const text  = document.getElementById('new-task').value.trim();
+    const time  = document.getElementById('new-time').value;
+    const color = document.getElementById('new-color').value;
+    if (!text) return;
+    const dStr=getStr(selDay);
+    if (!dbTime[dStr]) dbTime[dStr]=[];
+    dbTime[dStr].push({text,color,time,done:false,subtasks:[],isOverdue:false});
+    document.getElementById('new-task').value='';
+    document.getElementById('new-time').value='';
+    localStorage.setItem('josema_rpg_time_v4',JSON.stringify(dbTime));
+    renderDay();
+}
+function toggleTask(idx) {
+    const dStr=getStr(selDay);
+    dbTime[dStr][idx].done=!dbTime[dStr][idx].done;
+    localStorage.setItem('josema_rpg_time_v4',JSON.stringify(dbTime));
+    renderDay();
+}
+function delTask(idx) {
+    const dStr=getStr(selDay);
+    dbTime[dStr].splice(idx,1);
+    if (!dbTime[dStr].length) delete dbTime[dStr];
+    localStorage.setItem('josema_rpg_time_v4',JSON.stringify(dbTime));
+    renderDay();
+}
+function addSub(idx) {
+    const t=prompt('Nuevo paso:'); if (!t) return;
+    const dStr=getStr(selDay);
+    if (!dbTime[dStr][idx].subtasks) dbTime[dStr][idx].subtasks=[];
+    dbTime[dStr][idx].subtasks.push({text:t,done:false});
+    localStorage.setItem('josema_rpg_time_v4',JSON.stringify(dbTime));
+    renderDay();
+}
+function toggleSub(ti,si) {
+    const dStr=getStr(selDay);
+    dbTime[dStr][ti].subtasks[si].done=!dbTime[dStr][ti].subtasks[si].done;
+    localStorage.setItem('josema_rpg_time_v4',JSON.stringify(dbTime));
+    renderDay();
+}
+function delSub(ti,si) {
+    const dStr=getStr(selDay);
+    dbTime[dStr][ti].subtasks.splice(si,1);
+    localStorage.setItem('josema_rpg_time_v4',JSON.stringify(dbTime));
+    renderDay();
+}
+
+
+/* ══════════════════════════════════════
+   PENDIENTES
+══════════════════════════════════════ */
+function addPendingTask() {
+    const text  = document.getElementById('pend-text').value.trim();
+    const color = document.getElementById('pend-color').value;
+    const note  = document.getElementById('pend-note').value.trim();
+    if (!text) { 
+        document.getElementById('pend-text').style.borderColor = 'var(--red)';
+        setTimeout(() => document.getElementById('pend-text').style.borderColor = '', 1200);
+        return; 
+    }
+    dbPending.push({ id: Date.now(), text, color, note, done: false, date: null });
+    savePending();
+    document.getElementById('pend-text').value = '';
+    document.getElementById('pend-note').value = '';
+    renderPending();
+}
+
+function togglePending(id) {
+    const t = dbPending.find(t => t.id === id);
+    if (t) { t.done = !t.done; savePending(); renderPending(); }
+}
+
+function deletePending(id) {
+    dbPending = dbPending.filter(t => t.id !== id);
+    savePending();
+    renderPending();
+}
+
+function movePendingToDay(id) {
+    const task = dbPending.find(t => t.id === id);
+    if (!task) return;
+    // Show inline date input
+    const inp = document.getElementById('pend-date-' + id);
+    if (!inp) return;
+    inp.style.display = inp.style.display === 'none' ? 'flex' : 'none';
+}
+
+function confirmMovePending(id) {
+    const task = dbPending.find(t => t.id === id);
+    if (!task) return;
+    const dateVal = document.getElementById('pend-dateinp-' + id).value;
+    if (!dateVal) return;
+    if (!dbTime[dateVal]) dbTime[dateVal] = [];
+    dbTime[dateVal].push({ 
+        id: Date.now(), text: task.text, color: task.color || 'blue', 
+        note: task.note || '', done: false, time: '' 
+    });
+    localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
+    dbPending = dbPending.filter(t => t.id !== id);
+    savePending();
+    renderPending();
+    // Format nice date
+    const d = new Date(dateVal + 'T12:00:00');
+    toast('✓ Movida al ' + d.getDate() + ' ' + MONTHS[d.getMonth()]);
+}
+
+function renderPending() {
+    // Update tab badge
+    const pendingOpen = dbPending.filter(t=>!t.done).length;
+    const tabBtn = document.getElementById('tab-pending-btn');
+    if (tabBtn) tabBtn.textContent = pendingOpen > 0 ? `Pendientes (${pendingOpen})` : 'Pendientes';
+    
+    const el = document.getElementById('pending-list');
+    if (!el) return;
+    if (!dbPending.length) {
+        el.innerHTML = '<div class="empty">Sin tareas pendientes. ¡Todo al día!</div>';
+        return;
+    }
+    const open = dbPending.filter(t => !t.done);
+    const done = dbPending.filter(t => t.done);
+    
+    const row = (t) => {
+        const col = COLOR_HEX[t.color] || '#5b8af0';
+        return `
+        <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.03);opacity:${t.done?0.45:1}">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+                <div style="width:3px;align-self:stretch;border-radius:99px;flex-shrink:0;background:${col}"></div>
+                <div onclick="togglePending(${t.id})" style="width:24px;height:24px;border-radius:7px;flex-shrink:0;cursor:pointer;margin-top:1px;
+                    border:1.5px solid ${t.done ? 'var(--green)' : 'var(--border2)'};
+                    background:${t.done ? 'rgba(82,183,136,0.15)' : 'transparent'};
+                    display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green)">
+                    ${t.done ? '✓' : ''}
+                </div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:500;color:var(--text);text-decoration:${t.done ? 'line-through' : 'none'}">${t.text}</div>
+                    ${t.note ? `<div style="font-size:11px;color:var(--dim);margin-top:2px">${t.note}</div>` : ''}
+                </div>
+                <div style="display:flex;gap:4px;flex-shrink:0">
+                    ${!t.done ? `<button onclick="movePendingToDay(${t.id})" title="Asignar día"
+                        style="height:30px;padding:0 10px;border-radius:8px;background:rgba(91,138,240,0.08);
+                        color:var(--blue);border:1px solid rgba(91,138,240,0.2);font-size:11px;font-weight:600;
+                        font-family:'DM Sans',sans-serif;white-space:nowrap;cursor:pointer">📅 Día</button>` : ''}
+                    <button onclick="deletePending(${t.id})"
+                        style="width:30px;height:30px;border-radius:8px;background:rgba(224,95,95,0.08);
+                        color:var(--red);border:1px solid rgba(224,95,95,0.15);font-size:11px;font-weight:700;
+                        display:flex;align-items:center;justify-content:center;cursor:pointer">✕</button>
+                </div>
+            </div>
+            ${!t.done ? `
+            <div id="pend-date-${t.id}" style="display:none;margin-top:10px;margin-left:13px;align-items:center;gap:8px;
+                padding:10px 12px;background:rgba(91,138,240,0.06);border:1px solid rgba(91,138,240,0.15);border-radius:10px">
+                <span style="font-size:12px;color:var(--blue);font-weight:600;flex-shrink:0">Mover al día:</span>
+                <input type="date" id="pend-dateinp-${t.id}" 
+                    style="flex:1;min-width:0;background:var(--s2);border:1px solid var(--border);color:var(--text);
+                    border-radius:8px;padding:6px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+                <button onclick="confirmMovePending(${t.id})"
+                    style="background:var(--blue);color:#fff;border:none;border-radius:8px;
+                    padding:7px 14px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;
+                    white-space:nowrap;cursor:pointer;flex-shrink:0">Mover</button>
+            </div>` : ''}
+        </div>`;
+    };
+
+    el.innerHTML = `
+        <div class="card" style="margin-bottom:8px">
+            <div style="padding:10px 14px 0;font-size:10px;font-weight:700;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase">
+                Pendientes (${open.length})
+            </div>
+            ${open.length ? open.map(row).join('') : '<div class="empty" style="padding:16px 0;font-size:13px">¡Todo al día! Sin pendientes.</div>'}
+        </div>
+        ${done.length ? `
+        <div class="card">
+            <div style="padding:10px 14px 0;font-size:10px;font-weight:700;color:var(--dim);letter-spacing:0.5px;text-transform:uppercase">
+                Completados (${done.length})
+            </div>
+            ${done.map(row).join('')}
+        </div>` : ''}`;
+}
+
+/* ══════════════════════════════════════
+   TURNOS
+══════════════════════════════════════ */
+let shiftViewMonth = new Date();
+const SHIFT_COLORS = { TM:'#5b8af0', TT:'#c9a84c', TN:'#9b7fe0', L:'#52b788' };
+
+function changeShiftMonth(d) {
+    shiftViewMonth = new Date(shiftViewMonth.getFullYear(), shiftViewMonth.getMonth() + d, 1);
+    renderShiftCal();
+}
+
+function cycleShift(dateStr) {
+    const cur   = dbShifts[dateStr];
+    const order = ['TM','TT','TN','L', null];
+    const idx   = order.indexOf(cur === undefined ? null : cur);
+    const next  = order[(idx + 1) % order.length];
+    if (next === null) delete dbShifts[dateStr];
+    else dbShifts[dateStr] = next;
+    saveShifts();
+    renderShiftCal();
+    renderCal();
+}
+
+function bulkShift(type) {
+    const from = document.getElementById('bulk-from').value;
+    const to   = document.getElementById('bulk-to').value;
+    if (!from || !to) { toast('Selecciona fechas de inicio y fin'); return; }
+    if (from > to) { toast('La fecha de inicio debe ser anterior al fin'); return; }
+    let cur = new Date(from + 'T12:00:00');
+    const end = new Date(to + 'T12:00:00');
+    let count = 0;
+    while (cur <= end) {
+        const dStr = getStr(cur);
+        if (type === 'L') delete dbShifts[dStr];
+        else dbShifts[dStr] = type;
+        cur.setDate(cur.getDate() + 1);
+        count++;
+    }
+    saveShifts();
+    renderShiftCal();
+    renderCal();
+    toast('✓ ' + count + ' días asignados como ' + type);
+}
+
+function renderShiftCal() {
+    const y = shiftViewMonth.getFullYear();
+    const m = shiftViewMonth.getMonth();
+    document.getElementById('shift-month-display').textContent = MONTHS[m] + ' ' + y;
+
+    const grid       = document.getElementById('shift-cal-grid');
+    const firstDow   = new Date(y, m, 1).getDay();
+    const daysInMonth= new Date(y, m + 1, 0).getDate();
+    const start      = firstDow === 0 ? 6 : firstDow - 1;
+
+    let html = '';
+    for (let i = 0; i < start; i++) {
+        html += `<div style="aspect-ratio:1;background:var(--s1);border:1px solid var(--border);border-radius:8px;opacity:0.15"></div>`;
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+        const iter   = new Date(y, m, d, 12, 0, 0);
+        const dStr   = getStr(iter);
+        const shift  = dbShifts[dStr];
+        const isToday= dStr === getStr(realToday);
+        const bg     = shift ? SHIFT_COLORS[shift] + '22' : 'var(--s2)';
+        const col    = shift ? SHIFT_COLORS[shift] : 'var(--dim)';
+        const border = isToday ? '1.5px solid var(--acc)' : shift ? `1px solid ${SHIFT_COLORS[shift]}55` : '1px solid var(--border)';
+        html += `
+            <div onclick="cycleShift('${dStr}')" 
+                style="aspect-ratio:1;background:${bg};border:${border};border-radius:8px;
+                display:flex;flex-direction:column;align-items:center;justify-content:center;
+                cursor:pointer;transition:opacity 0.12s;min-width:0;padding:2px">
+                <div style="font-size:11px;line-height:1;color:${isToday ? 'var(--acc)' : col};font-weight:${isToday ? 700 : 400}">${d}</div>
+                ${shift ? `<div style="font-size:8px;font-weight:700;color:${col};line-height:1;margin-top:2px">${shift}</div>` : ''}
+            </div>`;
+    }
+    grid.innerHTML = html;
+}
+
+renderCal();
+
+// Splash screen
+(function() {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+    const shown = sessionStorage.getItem('lifeos_splash');
+    if (shown) { splash.style.display = 'none'; return; }
+    setTimeout(() => {
+        splash.classList.add('hide');
+        setTimeout(() => { splash.style.display = 'none'; }, 500);
+        sessionStorage.setItem('lifeos_splash', '1');
+    }, 1600);
+})();
+
+</script>
+</body>
+</html>
