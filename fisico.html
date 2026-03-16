@@ -174,6 +174,50 @@
         }
         .rt-preset.rt-preset-active { background:rgba(91,138,240,0.15);color:var(--blue);border-color:rgba(91,138,240,0.3); }
 
+
+        /* ── RUNNING ── */
+        .run-card {
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:16px; overflow:hidden; margin-bottom:10px;
+            transition:border-color 0.2s;
+        }
+        .run-card:hover { border-color:rgba(91,138,240,0.3); }
+        .run-zone {
+            display:flex; align-items:center; gap:6px;
+            font-size:11px; font-weight:700; padding:3px 9px;
+            border-radius:99px; letter-spacing:0.5px;
+        }
+        .zone-1 { background:rgba(82,183,136,0.15); color:#52b788; }
+        .zone-2 { background:rgba(91,138,240,0.15); color:#5b8af0; }
+        .zone-3 { background:rgba(201,168,76,0.15);  color:#c9a84c; }
+        .zone-4 { background:rgba(224,122,95,0.15);  color:#e07a5f; }
+        .zone-5 { background:rgba(224,95,95,0.15);   color:#e05f5f; }
+        .run-stat-grid {
+            display:grid; grid-template-columns:repeat(4,1fr);
+            gap:8px; padding:12px 14px;
+            border-top:1px solid var(--border);
+        }
+        .run-stat { text-align:center; }
+        .run-stat-val { font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; line-height:1; }
+        .run-stat-lbl { font-size:10px; font-weight:600; color:var(--dim);
+            text-transform:uppercase; letter-spacing:0.5px; margin-top:3px; }
+        /* ── MOBILITY ── */
+        .mob-card {
+            background:var(--s1); border:1px solid var(--border);
+            border-radius:16px; overflow:hidden; margin-bottom:10px;
+            transition:border-color 0.2s;
+        }
+        .mob-card:hover { border-color:rgba(155,127,224,0.3); }
+        .mob-ex-row {
+            display:flex; align-items:center; gap:10px;
+            padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04);
+            cursor:pointer; transition:background 0.12s;
+        }
+        .mob-ex-row:last-child { border-bottom:none; }
+        .mob-ex-row:active { background:rgba(255,255,255,0.03); }
+        .mob-ex-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+        .mob-timer-ring { position:relative; flex-shrink:0; }
+
         /* Exercise block */
         .ex-block {
             background:var(--s1); border:1px solid var(--border);
@@ -532,6 +576,8 @@
         <button class="tab-btn" onclick="switchTab('routines',this)">Rutinas</button>
         <button class="tab-btn" onclick="switchTab('library',this)">Ejercicios</button>
         <button class="tab-btn" onclick="switchTab('progress',this)">Progreso</button>
+        <button class="tab-btn" onclick="switchTab('running',this)">Running</button>
+        <button class="tab-btn" onclick="switchTab('mobility',this)">Movilidad</button>
     </div>
 </div>
 
@@ -682,6 +728,208 @@
         <div class="card" id="pr-list"></div>
     </div>
 
+
+    <!-- ════ RUNNING ════ -->
+    <div id="view-running" class="view s1">
+
+        <!-- Resumen rápido -->
+        <div class="stat-grid" style="margin-bottom:12px" id="run-summary-grid"></div>
+
+        <!-- Registrar carrera -->
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div class="sec-label" style="margin-bottom:0">Registrar carrera</div>
+                <button onclick="toggleRunForm()" id="run-form-toggle"
+                    style="font-size:11px;font-weight:600;color:var(--dim);background:none;border:none;font-family:'DM Sans',sans-serif;cursor:pointer">Expandir ↓</button>
+            </div>
+
+            <!-- Quick register row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+                <input class="inp" id="run-dist" type="number" step="0.01" placeholder="km" style="margin-bottom:0;text-align:center">
+                <input class="inp" id="run-time" type="text" placeholder="mm:ss" style="margin-bottom:0;text-align:center">
+                <input class="inp" id="run-date" type="date" style="margin-bottom:0;font-size:12px">
+            </div>
+
+            <!-- Extended form (hidden by default) -->
+            <div id="run-form-extra" style="display:none">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                    <input class="inp" id="run-hr" type="number" placeholder="FC media (bpm)" style="margin-bottom:0">
+                    <input class="inp" id="run-elevation" type="number" placeholder="Desnivel + (m)" style="margin-bottom:0">
+                </div>
+                <select class="inp" id="run-type">
+                    <option value="easy">🟢 Rodaje suave</option>
+                    <option value="tempo">🔵 Tempo / Umbral</option>
+                    <option value="interval">🟡 Series / Intervalos</option>
+                    <option value="long">🟠 Tirada larga</option>
+                    <option value="race">🔴 Competición</option>
+                    <option value="trail">🟤 Trail / montaña</option>
+                </select>
+                <!-- Intervals builder -->
+                <div id="run-intervals-section" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px">
+                    <div style="font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Series</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+                        <input class="inp" id="int-reps"  type="number" placeholder="Reps" style="margin-bottom:0;text-align:center">
+                        <input class="inp" id="int-dist"  type="number" step="0.01" placeholder="m/km" style="margin-bottom:0;text-align:center">
+                        <input class="inp" id="int-pace"  type="text" placeholder="ritmo" style="margin-bottom:0;text-align:center">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                        <input class="inp" id="int-rec" type="text" placeholder="Rec (mm:ss)" style="margin-bottom:0">
+                        <button onclick="addInterval()" style="background:rgba(91,138,240,0.1);color:var(--blue);border:1px solid rgba(91,138,240,0.2);border-radius:10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">+ Añadir serie</button>
+                    </div>
+                    <div id="intervals-list" style="margin-top:8px"></div>
+                </div>
+                <input class="inp" id="run-notes" type="text" placeholder="Notas (sensaciones, ruta...)">
+            </div>
+
+            <button class="btn-primary" onclick="saveRun()">Guardar carrera</button>
+        </div>
+
+        <!-- Planes de entrenamiento -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="sec-label" style="margin-bottom:0">Mis planes</div>
+            <button onclick="openRunPlanForm()" style="background:rgba(91,138,240,0.1);color:var(--blue);border:1px solid rgba(91,138,240,0.2);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">+ Crear plan</button>
+        </div>
+        <div id="run-plans-list" style="margin-bottom:12px"></div>
+
+        <!-- Historial de carreras -->
+        <div class="sec-label">Historial</div>
+        <div id="run-history-list"></div>
+
+        <!-- Modal: crear plan -->
+        <div id="run-plan-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);
+            z-index:9000;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(4px)">
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:20px 20px 0 0;
+                width:100%;max-width:480px;max-height:85dvh;overflow-y:auto;padding:20px 20px 40px">
+                <div style="width:36px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
+                <div class="sec-label" style="margin-bottom:14px">Nuevo plan de running</div>
+                <input class="inp" id="rp-name" type="text" placeholder="Nombre del plan (ej: Preparación 10K)">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                    <select class="inp" id="rp-goal" style="margin-bottom:0">
+                        <option value="5k">🏃 5K</option>
+                        <option value="10k">🏃 10K</option>
+                        <option value="hm">🏃 Media maratón</option>
+                        <option value="marathon">🏃 Maratón</option>
+                        <option value="trail">⛰️ Trail</option>
+                        <option value="general">💪 Fitness general</option>
+                    </select>
+                    <input class="inp" id="rp-weeks" type="number" placeholder="Semanas" style="margin-bottom:0">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                    <input class="inp" id="rp-days" type="number" placeholder="Días/semana (2-7)" min="2" max="7" style="margin-bottom:0">
+                    <input class="inp" id="rp-target" type="text" placeholder="Tiempo objetivo" style="margin-bottom:0">
+                </div>
+                <input class="inp" id="rp-start" type="date">
+                <textarea class="inp" id="rp-desc" placeholder="Descripción / notas del plan..." style="height:80px;resize:none"></textarea>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="document.getElementById('run-plan-modal').style.display='none'" class="btn-ghost" style="width:100%">Cancelar</button>
+                    <button onclick="saveRunPlan()" class="btn-primary" style="width:auto">Guardar plan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ MOVILIDAD ════ -->
+    <div id="view-mobility" class="view s1">
+
+        <!-- Stats hoy -->
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div>
+                    <div class="sec-label" style="margin-bottom:4px">Sesión de hoy</div>
+                    <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--purple);line-height:1">
+                        <span id="mob-done-today">0</span>
+                        <span style="font-size:16px;color:var(--sub)"> / <span id="mob-total-today">0</span></span>
+                    </div>
+                    <div style="font-size:11px;color:var(--dim);margin-top:2px">ejercicios completados</div>
+                </div>
+                <div style="text-align:right">
+                    <button onclick="switchMobTab('session')" id="mob-btn-session"
+                        style="display:block;margin-bottom:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;
+                        background:rgba(155,127,224,0.15);color:var(--purple);border:1px solid rgba(155,127,224,0.25);
+                        font-family:'DM Sans',sans-serif;cursor:pointer">Iniciar sesión</button>
+                    <button onclick="switchMobTab('builder')" id="mob-btn-builder"
+                        style="display:block;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;
+                        background:var(--s2);color:var(--dim);border:1px solid var(--border);
+                        font-family:'DM Sans',sans-serif;cursor:pointer">Crear rutina</button>
+                </div>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden">
+                <div id="mob-progress-bar" style="height:100%;background:linear-gradient(90deg,#9b7fe0,#52b788);border-radius:99px;width:0%;transition:width 0.5s ease"></div>
+            </div>
+        </div>
+
+        <!-- Sub-tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+            <button onclick="switchMobTab('session')" id="mob-tab-session"
+                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
+                background:rgba(155,127,224,0.15);color:var(--purple);border:1px solid rgba(155,127,224,0.25);
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">🧘 Sesión</button>
+            <button onclick="switchMobTab('library')" id="mob-tab-library"
+                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
+                background:var(--s2);color:var(--dim);border:1px solid var(--border);
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">📚 Biblioteca</button>
+            <button onclick="switchMobTab('builder')" id="mob-tab-builder"
+                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
+                background:var(--s2);color:var(--dim);border:1px solid var(--border);
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">🛠 Rutinas</button>
+            <button onclick="switchMobTab('history')" id="mob-tab-history"
+                style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;
+                background:var(--s2);color:var(--dim);border:1px solid var(--border);
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">📊 Historial</button>
+        </div>
+
+        <!-- SESSION -->
+        <div id="mob-view-session">
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                    <div class="sec-label" style="margin-bottom:0">Rutina activa</div>
+                    <select class="inp" id="mob-routine-sel" onchange="loadMobRoutine()" style="margin-bottom:0;max-width:160px;font-size:12px">
+                        <option value="">— Sin rutina —</option>
+                    </select>
+                </div>
+                <div id="mob-session-list"></div>
+                <button onclick="finishMobSession()" class="btn-primary" style="margin-top:8px;background:rgba(155,127,224,0.15);color:var(--purple);border:1px solid rgba(155,127,224,0.25)">✓ Guardar sesión</button>
+            </div>
+        </div>
+
+        <!-- LIBRARY -->
+        <div id="mob-view-library" style="display:none">
+            <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px;-webkit-overflow-scrolling:touch" id="mob-cat-chips"></div>
+            <div id="mob-library-list"></div>
+        </div>
+
+        <!-- BUILDER -->
+        <div id="mob-view-builder" style="display:none">
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px">
+                <div class="sec-label" style="margin-bottom:12px">Nueva rutina de movilidad</div>
+                <input class="inp" id="mob-rtn-name" type="text" placeholder="Nombre de la rutina (ej: Movilidad matutina)">
+                <select class="inp" id="mob-rtn-focus">
+                    <option value="full">🔄 Cuerpo completo</option>
+                    <option value="upper">💪 Tren superior</option>
+                    <option value="lower">🦵 Tren inferior</option>
+                    <option value="spine">🔃 Columna y core</option>
+                    <option value="hips">🍑 Caderas y glúteos</option>
+                    <option value="shoulders">🤸 Hombros y pecho</option>
+                    <option value="morning">☀️ Rutina matutina</option>
+                    <option value="night">🌙 Rutina nocturna</option>
+                </select>
+                <div style="font-size:12px;color:var(--sub);margin-bottom:8px">Añade ejercicios desde la biblioteca</div>
+                <div id="mob-builder-list" style="margin-bottom:10px"></div>
+                <button onclick="openMobLibraryForBuilder()" style="width:100%;padding:10px;border-radius:10px;background:rgba(155,127,224,0.08);color:var(--purple);border:1px solid rgba(155,127,224,0.2);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-bottom:8px">+ Añadir ejercicio</button>
+                <button onclick="saveMobRoutine()" class="btn-primary">Guardar rutina</button>
+            </div>
+            <div class="sec-label">Mis rutinas guardadas</div>
+            <div id="mob-routines-list"></div>
+        </div>
+
+        <!-- HISTORY -->
+        <div id="mob-view-history" style="display:none">
+            <div class="stat-grid" style="margin-bottom:12px" id="mob-hist-stats"></div>
+            <div class="sec-label">Sesiones recientes</div>
+            <div id="mob-history-list"></div>
+        </div>
+    </div>
+
 </div>
 
 <nav class="nav-bar">
@@ -723,6 +971,8 @@ function switchTab(view, el) {
     if (view==='library')  renderLibrary();
     if (view==='progress') renderProgress();
     if (view==='today')    refreshRoutinePicker();
+    if (view==='running')  renderRunning();
+    if (view==='mobility') renderMobility();
 }
 
 /* ════════════════════════════════════════
@@ -1662,6 +1912,575 @@ refreshRoutinePicker();
         sessionStorage.setItem('lifeos_splash', '1');
     }, 1600);
 })();
+
+
+/* ════════════════════════════════════════
+   RUNNING
+════════════════════════════════════════ */
+const K_RUNS     = 'lifeos_running_v1';
+const K_RUN_PLANS= 'lifeos_run_plans_v1';
+
+let dbRuns     = JSON.parse(localStorage.getItem(K_RUNS))      || [];
+let dbRunPlans = JSON.parse(localStorage.getItem(K_RUN_PLANS)) || [];
+let runIntervals = [];
+
+function saveRuns()     { localStorage.setItem(K_RUNS, JSON.stringify(dbRuns)); }
+function saveRunPlans() { localStorage.setItem(K_RUN_PLANS, JSON.stringify(dbRunPlans)); }
+
+const RUN_TYPE = {
+    easy:     { label:'Rodaje suave',     color:'#52b788', icon:'🟢' },
+    tempo:    { label:'Tempo / Umbral',   color:'#5b8af0', icon:'🔵' },
+    interval: { label:'Series',           color:'#c9a84c', icon:'🟡' },
+    long:     { label:'Tirada larga',     color:'#e07a5f', icon:'🟠' },
+    race:     { label:'Competición',      color:'#e05f5f', icon:'🔴' },
+    trail:    { label:'Trail',            color:'#8a6a3e', icon:'🟤' },
+};
+
+function secToMmss(s) {
+    const m = Math.floor(s/60), sec = s%60;
+    return `${m}:${String(sec).padStart(2,'0')}`;
+}
+function mmssToSec(str) {
+    const parts = str.split(':');
+    if (parts.length === 2) return parseInt(parts[0])*60 + parseInt(parts[1]);
+    if (parts.length === 3) return parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseInt(parts[2]);
+    return 0;
+}
+function calcPace(distKm, timeSec) {
+    if (!distKm || !timeSec) return '—';
+    const paceSec = timeSec / distKm;
+    return secToMmss(Math.round(paceSec)) + '/km';
+}
+
+function toggleRunForm() {
+    const el = document.getElementById('run-form-extra');
+    const btn= document.getElementById('run-form-toggle');
+    const open = el.style.display === 'none';
+    el.style.display = open ? 'block' : 'none';
+    btn.textContent  = open ? 'Contraer ↑' : 'Expandir ↓';
+}
+
+document.getElementById('run-type')?.addEventListener('change', function() {
+    const sect = document.getElementById('run-intervals-section');
+    if (sect) sect.style.display = this.value === 'interval' ? 'block' : 'none';
+});
+
+function addInterval() {
+    const reps = parseInt(document.getElementById('int-reps').value) || 1;
+    const dist = document.getElementById('int-dist').value || '';
+    const pace = document.getElementById('int-pace').value || '';
+    const rec  = document.getElementById('int-rec').value  || '';
+    runIntervals.push({ reps, dist, pace, rec });
+    renderIntervalsList();
+}
+
+function renderIntervalsList() {
+    const el = document.getElementById('intervals-list');
+    if (!el) return;
+    el.innerHTML = runIntervals.map((s,i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px">
+            <span style="color:var(--blue);font-weight:700">${s.reps}×</span>
+            <span style="color:var(--text)">${s.dist}</span>
+            <span style="color:var(--acc)">@ ${s.pace||'—'}</span>
+            <span style="color:var(--dim)">rec: ${s.rec||'—'}</span>
+            <button onclick="runIntervals.splice(${i},1);renderIntervalsList()"
+                style="margin-left:auto;color:var(--red);background:none;border:none;font-size:12px;cursor:pointer">✕</button>
+        </div>`).join('');
+}
+
+function saveRun() {
+    const dist = parseFloat(document.getElementById('run-dist').value);
+    const timeStr = document.getElementById('run-time').value.trim();
+    const date    = document.getElementById('run-date').value || todayStr;
+    if (!dist || !timeStr) { toast('Introduce distancia y tiempo'); return; }
+    const timeSec = mmssToSec(timeStr) || (parseFloat(timeStr)*60);
+    const type    = document.getElementById('run-type')?.value || 'easy';
+    const hr      = parseInt(document.getElementById('run-hr')?.value) || null;
+    const elev    = parseInt(document.getElementById('run-elevation')?.value) || null;
+    const notes   = document.getElementById('run-notes')?.value.trim() || '';
+    const pace    = timeSec / dist;
+
+    dbRuns.unshift({ date, dist, timeSec, pace, type, hr, elev, notes,
+        intervals: runIntervals.length ? [...runIntervals] : null });
+    saveRuns();
+    runIntervals = [];
+
+    // Reset
+    ['run-dist','run-time','run-hr','run-elevation','run-notes'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('run-form-extra').style.display = 'none';
+    document.getElementById('run-form-toggle').textContent = 'Expandir ↓';
+    renderRunning();
+    toast('✓ Carrera guardada');
+}
+
+function openRunPlanForm() {
+    const d = document.getElementById('rp-start');
+    if (d) d.value = todayStr;
+    document.getElementById('run-plan-modal').style.display = 'flex';
+}
+
+function saveRunPlan() {
+    const name  = document.getElementById('rp-name').value.trim();
+    const goal  = document.getElementById('rp-goal').value;
+    const weeks = parseInt(document.getElementById('rp-weeks').value) || 8;
+    const days  = parseInt(document.getElementById('rp-days').value)  || 3;
+    const target= document.getElementById('rp-target').value.trim();
+    const start = document.getElementById('rp-start').value || todayStr;
+    const desc  = document.getElementById('rp-desc').value.trim();
+    if (!name) { toast('Escribe un nombre para el plan'); return; }
+    dbRunPlans.push({ name, goal, weeks, days, target, start, desc,
+        completedWeeks: 0, createdAt: todayStr });
+    saveRunPlans();
+    document.getElementById('run-plan-modal').style.display = 'none';
+    ['rp-name','rp-weeks','rp-days','rp-target','rp-desc'].forEach(id => {
+        const el=document.getElementById(id); if(el) el.value='';
+    });
+    renderRunning();
+    toast('✓ Plan creado');
+}
+
+function deleteRun(idx) {
+    dbRuns.splice(idx,1); saveRuns(); renderRunning();
+}
+function deleteRunPlan(idx) {
+    dbRunPlans.splice(idx,1); saveRunPlans(); renderRunning();
+}
+
+function renderRunning() {
+    // Summary stats
+    const totalKm    = dbRuns.reduce((s,r)=>s+r.dist,0);
+    const totalRuns  = dbRuns.length;
+    const thisWeek   = dbRuns.filter(r=>{ const d=new Date(r.date+'T12:00:00'); return (Date.now()-d)<7*86400000; });
+    const weekKm     = thisWeek.reduce((s,r)=>s+r.dist,0);
+    const bestPace   = dbRuns.length ? Math.min(...dbRuns.map(r=>r.pace)) : null;
+    const longestRun = dbRuns.length ? Math.max(...dbRuns.map(r=>r.dist)) : null;
+
+    const sg = document.getElementById('run-summary-grid');
+    if (sg) sg.innerHTML = `
+        <div class="stat-tile st-blue">
+            <div class="stat-label">Total km</div>
+            <div class="stat-val" style="color:#5b8af0">${totalKm.toFixed(1)}</div>
+            <div class="stat-unit">${totalRuns} carreras</div>
+        </div>
+        <div class="stat-tile st-green">
+            <div class="stat-label">Esta semana</div>
+            <div class="stat-val" style="color:var(--green)">${weekKm.toFixed(1)} km</div>
+            <div class="stat-unit">${thisWeek.length} sesiones</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-label">Mejor ritmo</div>
+            <div class="stat-val" style="color:var(--acc);font-size:18px">${bestPace?calcPace(1,bestPace*60):'—'}</div>
+            <div class="stat-unit">min/km</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-label">Dist. máx.</div>
+            <div class="stat-val" style="color:var(--yellow);font-size:24px">${longestRun?longestRun.toFixed(1)+'km':'—'}</div>
+        </div>`;
+
+    // Plans
+    const pl = document.getElementById('run-plans-list');
+    if (pl) {
+        if (!dbRunPlans.length) {
+            pl.innerHTML = '<div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;font-size:13px;color:var(--dim)">Sin planes creados. Crea tu primer plan de entrenamiento.</div>';
+        } else {
+            pl.innerHTML = dbRunPlans.map((p,i) => {
+                const goali = {hm:'Media maratón',marathon:'Maratón','5k':'5K','10k':'10K',trail:'Trail',general:'Fitness'}[p.goal]||p.goal;
+                const startDate = new Date(p.start+'T12:00:00');
+                const endDate   = new Date(startDate); endDate.setDate(endDate.getDate()+p.weeks*7);
+                const now2      = new Date();
+                const pct       = Math.min(100, Math.max(0, Math.round((now2-startDate)/(endDate-startDate)*100)));
+                return `
+                <div class="run-card">
+                    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px">
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px">${p.name}</div>
+                            <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${goali} · ${p.weeks} semanas · ${p.days}d/sem${p.target?' · Objetivo: '+p.target:''}</div>
+                            <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden;margin-bottom:4px">
+                                <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#5b8af0,#52b788);border-radius:99px;transition:width 0.5s ease"></div>
+                            </div>
+                            <div style="font-size:10px;color:var(--dim)">${pct}% completado</div>
+                        </div>
+                        <button onclick="deleteRunPlan(${i})" style="color:var(--dim);background:none;border:none;font-size:13px;cursor:pointer;flex-shrink:0;padding:4px">✕</button>
+                    </div>
+                    ${p.desc?`<div style="padding:0 16px 12px;font-size:12px;color:var(--dim)">${p.desc}</div>`:''}
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // History
+    const hl = document.getElementById('run-history-list');
+    if (hl) {
+        if (!dbRuns.length) {
+            hl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--dim);font-size:13px">Sin carreras registradas. ¡A correr!</div>';
+        } else {
+            const MONTHS_S=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            hl.innerHTML = dbRuns.slice(0,20).map((r,i) => {
+                const d    = new Date(r.date+'T12:00:00');
+                const meta = RUN_TYPE[r.type] || RUN_TYPE.easy;
+                const pace = calcPace(r.dist, r.timeSec);
+                return `
+                <div class="run-card">
+                    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+                        <div style="text-align:center;flex-shrink:0;width:40px">
+                            <div style="font-size:18px;font-weight:700;color:var(--text);line-height:1">${d.getDate()}</div>
+                            <div style="font-size:10px;color:var(--dim)">${MONTHS_S[d.getMonth()]}</div>
+                        </div>
+                        <div style="flex:1;min-width:0">
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                                <span class="run-zone" style="background:${meta.color}18;color:${meta.color}">${meta.icon} ${meta.label}</span>
+                            </div>
+                            <div style="font-size:12px;color:var(--sub)">
+                                ${r.hr?`FC: ${r.hr}bpm · `:''}${r.elev?`↑${r.elev}m · `:''}${pace}
+                            </div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0">
+                            <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#5b8af0;line-height:1">${r.dist.toFixed(2)}</div>
+                            <div style="font-size:10px;color:var(--dim)">km · ${secToMmss(r.timeSec)}</div>
+                        </div>
+                        <button onclick="deleteRun(${i})" style="color:var(--dim);background:none;border:none;font-size:13px;cursor:pointer;flex-shrink:0">✕</button>
+                    </div>
+                    ${r.intervals?`<div style="padding:0 16px 10px"><div style="font-size:11px;color:var(--dim)">Series: ${r.intervals.map(s=>`${s.reps}×${s.dist}@${s.pace}`).join(' / ')}</div></div>`:''}
+                    ${r.notes?`<div style="padding:0 16px 10px;font-size:12px;color:var(--dim);font-style:italic">"${r.notes}"</div>`:''}
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // Set default date
+    const runDateEl = document.getElementById('run-date');
+    if (runDateEl && !runDateEl.value) runDateEl.value = todayStr;
+}
+
+/* ════════════════════════════════════════
+   MOVILIDAD
+════════════════════════════════════════ */
+const K_MOB_SESS    = 'lifeos_mob_sessions_v1';
+const K_MOB_ROUTINES= 'lifeos_mob_routines_v1';
+
+let dbMobSessions = JSON.parse(localStorage.getItem(K_MOB_SESS))     || [];
+let dbMobRoutines = JSON.parse(localStorage.getItem(K_MOB_ROUTINES)) || [];
+let mobBuilderList= [];
+let mobActiveSess = {};  // { exName: {done: bool, sets completed} }
+let mobActiveCat  = 'Todos';
+let mobSubView    = 'session';
+let mobForBuilder = false;
+
+function saveMobSessions() { localStorage.setItem(K_MOB_SESS, JSON.stringify(dbMobSessions)); }
+function saveMobRoutines() { localStorage.setItem(K_MOB_ROUTINES, JSON.stringify(dbMobRoutines)); }
+
+const MOB_LIBRARY = [
+    // Caderas
+    { name:'Apertura de cadera 90/90', cat:'Caderas', sets:2, duration:60, side:true,
+      desc:'Siéntate con ambas piernas en 90°. Inclínate hacia delante manteniendo la espalda recta.' },
+    { name:'Paloma tumbado', cat:'Caderas', sets:2, duration:60, side:true,
+      desc:'Tumbado boca arriba, cruza el tobillo sobre la rodilla opuesta y empuja suavemente.' },
+    { name:'Lunge con rotación', cat:'Caderas', sets:2, duration:45, side:true,
+      desc:'En posición de zancada, rota el tronco hacia la pierna delantera.' },
+    { name:'Hip flexor stretch', cat:'Caderas', sets:2, duration:60, side:true,
+      desc:'Rodilla en el suelo, empuja la cadera hacia delante. Mantén el glúteo contraído.' },
+    { name:'Frog stretch', cat:'Caderas', sets:2, duration:90, side:false,
+      desc:'De rodillas con las piernas abiertas en V, abre progresivamente hacia los lados.' },
+    // Columna
+    { name:'Cat-Cow', cat:'Columna', sets:3, reps:10,
+      desc:'A cuatro patas, alterna arquear y redondear la espalda sincronizando con la respiración.' },
+    { name:'Hilo de aguja', cat:'Columna', sets:2, duration:45, side:true,
+      desc:'A cuatro patas, pasa un brazo por debajo del cuerpo y lleva el hombro al suelo.' },
+    { name:'Twist supino', cat:'Columna', sets:2, duration:60, side:true,
+      desc:'Tumbado boca arriba, lleva la rodilla al lado opuesto mientras la cabeza mira al otro lado.' },
+    { name:'Cuadrupedia lateral', cat:'Columna', sets:2, reps:8, side:true,
+      desc:'A cuatro patas, eleva un brazo y la pierna contraria manteniendo la columna neutra.' },
+    // Hombros
+    { name:'Banda en pared', cat:'Hombros', sets:2, duration:60, side:true,
+      desc:'Coloca el brazo en extensión contra la pared y gira el cuerpo alejándote suavemente.' },
+    { name:'Sleeper stretch', cat:'Hombros', sets:2, duration:60, side:true,
+      desc:'Tumbado de lado, dobla el codo 90°. Con la otra mano empuja suavemente el antebrazo hacia abajo.' },
+    { name:'Alcance torácico con foam roller', cat:'Hombros', sets:2, duration:90, side:false,
+      desc:'Tumbado sobre el foam roller a nivel torácico, deja caer los brazos atrás.' },
+    { name:'Face pull con banda', cat:'Hombros', sets:3, reps:15,
+      desc:'Con banda a altura de cara, lleva las manos hacia las orejas abriendo los codos.' },
+    // Tobillos
+    { name:'Estiramiento de sóleo', cat:'Tobillos', sets:2, duration:60, side:true,
+      desc:'Talón apoyado, dobla ligeramente la rodilla y empuja hacia delante.' },
+    { name:'Movilidad tobillo en pared', cat:'Tobillos', sets:2, reps:10, side:true,
+      desc:'Pie cerca de la pared, dobla la rodilla intentando tocar la pared sin levantar el talón.' },
+    { name:'CARs de tobillo', cat:'Tobillos', sets:2, reps:5, side:true,
+      desc:'Círculos lentos y controlados del tobillo, buscando el máximo rango sin compensaciones.' },
+    // Muñecas
+    { name:'Estiramiento dorsal de muñeca', cat:'Muñecas', sets:2, duration:45, side:true,
+      desc:'Con el brazo extendido, usa la otra mano para doblar los dedos hacia abajo.' },
+    { name:'CARs de muñeca', cat:'Muñecas', sets:2, reps:5, side:true,
+      desc:'Círculos lentos controlados de la muñeca en máximo rango.' },
+    // Full body
+    { name:'World greatest stretch', cat:'Full body', sets:2, reps:5, side:true,
+      desc:'Zancada larga con mano en el suelo, rota hacia la rodilla delantera y eleva el brazo.' },
+    { name:'Segmental squat', cat:'Full body', sets:2, reps:8,
+      desc:'Sentadilla profunda, abre las rodillas con los codos e intenta alargar la columna.' },
+    { name:'Inchworm', cat:'Full body', sets:2, reps:6,
+      desc:'De pie, baja las manos al suelo y camina con ellas hasta plancha. Vuelve caminando con los pies.' },
+    { name:'Scorpion', cat:'Full body', sets:2, reps:6, side:true,
+      desc:'Tumbado boca abajo, lleva el talón al glúteo opuesto rotando la cadera.' },
+];
+
+const MOB_CATS = ['Todos', ...new Set(MOB_LIBRARY.map(e=>e.cat))];
+
+function switchMobTab(tab) {
+    mobSubView = tab;
+    ['session','library','builder','history'].forEach(t => {
+        const v = document.getElementById('mob-view-'+t);
+        const b = document.getElementById('mob-tab-'+t);
+        if (v) v.style.display = t===tab ? 'block' : 'none';
+        if (b) {
+            const active = t===tab;
+            b.style.background   = active ? 'rgba(155,127,224,0.15)' : 'var(--s2)';
+            b.style.color        = active ? 'var(--purple)' : 'var(--dim)';
+            b.style.borderColor  = active ? 'rgba(155,127,224,0.25)' : 'var(--border)';
+        }
+    });
+    if (tab==='session') renderMobSession();
+    if (tab==='library') renderMobLibrary();
+    if (tab==='builder') renderMobBuilder();
+    if (tab==='history') renderMobHistory();
+}
+
+function renderMobSession() {
+    // Populate routine selector
+    const sel = document.getElementById('mob-routine-sel');
+    if (sel) {
+        sel.innerHTML = '<option value="">— Sin rutina —</option>' +
+            dbMobRoutines.map((r,i)=>`<option value="${i}">${r.name}</option>`).join('');
+    }
+    const listEl = document.getElementById('mob-session-list');
+    if (!listEl) return;
+    const routine = sel?.value !== '' ? dbMobRoutines[parseInt(sel?.value)] : null;
+    const exercises = routine ? routine.exercises : MOB_LIBRARY.filter(e=>e.cat==='Full body').slice(0,5);
+
+    listEl.innerHTML = exercises.map((ex,i) => {
+        const done = !!mobActiveSess[ex.name];
+        const label = ex.duration ? secToMmss(ex.duration) : (ex.reps ? ex.reps+'×' : '');
+        return `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div onclick="toggleMobEx('${ex.name}')" style="width:32px;height:32px;border-radius:9px;flex-shrink:0;cursor:pointer;
+                border:1.5px solid ${done?'var(--green)':'rgba(155,127,224,0.3)'};
+                background:${done?'rgba(82,183,136,0.15)':'rgba(155,127,224,0.06)'};
+                display:flex;align-items:center;justify-content:center;font-size:13px;
+                color:${done?'var(--green)':'var(--purple)'}">
+                ${done?'✓':''}
+            </div>
+            <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:${done?'var(--dim)':'var(--text)'};
+                    text-decoration:${done?'line-through':'none'}">${ex.name}${ex.side?' (cada lado)':''}</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:1px">${ex.cat} · ${label} · ${ex.sets||1} sets</div>
+            </div>
+            <div style="font-size:20px">${
+                ex.cat==='Caderas'?'🦵':ex.cat==='Columna'?'🔃':ex.cat==='Hombros'?'🤸':
+                ex.cat==='Tobillos'?'🦶':ex.cat==='Muñecas'?'🤲':'💪'
+            }</div>
+        </div>`;
+    }).join('');
+
+    const doneCount  = Object.values(mobActiveSess).filter(Boolean).length;
+    const totalCount = exercises.length;
+    const pct        = totalCount ? Math.round(doneCount/totalCount*100) : 0;
+    const doneEl = document.getElementById('mob-done-today');
+    const totEl  = document.getElementById('mob-total-today');
+    const barEl  = document.getElementById('mob-progress-bar');
+    if (doneEl) doneEl.textContent = doneCount;
+    if (totEl)  totEl.textContent  = totalCount;
+    if (barEl)  barEl.style.width  = pct+'%';
+}
+
+function toggleMobEx(name) {
+    mobActiveSess[name] = !mobActiveSess[name];
+    renderMobSession();
+}
+
+function loadMobRoutine() { renderMobSession(); }
+
+function finishMobSession() {
+    const sel     = document.getElementById('mob-routine-sel');
+    const routine = sel?.value !== '' ? dbMobRoutines[parseInt(sel?.value)] : null;
+    const done    = Object.keys(mobActiveSess).filter(k=>mobActiveSess[k]);
+    if (!done.length) { toast('Completa al menos un ejercicio'); return; }
+    dbMobSessions.unshift({
+        date: todayStr,
+        routineName: routine?.name || 'Sesión libre',
+        exercises: done,
+        total: Object.keys(mobActiveSess).length,
+        duration: done.length * 2,
+    });
+    saveMobSessions();
+    mobActiveSess = {};
+    renderMobSession();
+    renderMobHistory();
+    toast('✓ Sesión de movilidad guardada');
+}
+
+function renderMobLibrary() {
+    const catRow = document.getElementById('mob-cat-chips');
+    if (catRow) {
+        catRow.innerHTML = MOB_CATS.map(cat => `
+            <div onclick="setMobCat('${cat}')"
+                style="flex:0 0 auto;padding:5px 13px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;
+                border:1px solid ${cat===mobActiveCat?'rgba(155,127,224,0.4)':'var(--border)'};
+                background:${cat===mobActiveCat?'rgba(155,127,224,0.12)':'var(--s1)'};
+                color:${cat===mobActiveCat?'var(--purple)':'var(--sub)'};white-space:nowrap">
+                ${cat}
+            </div>`).join('');
+    }
+    const listEl = document.getElementById('mob-library-list');
+    if (!listEl) return;
+    const filtered = MOB_LIBRARY.filter(e => mobActiveCat==='Todos' || e.cat===mobActiveCat);
+    listEl.innerHTML = filtered.map((ex,i) => {
+        const label = ex.duration ? secToMmss(ex.duration) : (ex.reps ? ex.reps+' reps' : '');
+        return `
+        <div class="mob-card">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">${ex.name}${ex.side?' <span style="font-size:10px;color:var(--dim)">↔ c/lado</span>':''}</div>
+                    <div style="font-size:11px;color:var(--dim)">${ex.cat} · ${ex.sets} sets · ${label}</div>
+                </div>
+                ${mobForBuilder ? `
+                <button onclick="addMobToBuilder(${i})"
+                    style="padding:7px 14px;border-radius:9px;background:rgba(155,127,224,0.12);
+                    color:var(--purple);border:1px solid rgba(155,127,224,0.25);
+                    font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
+                    + Añadir
+                </button>` : ''}
+            </div>
+            <div style="padding:0 16px 12px;font-size:12px;color:var(--sub);line-height:1.6;border-top:1px solid rgba(255,255,255,0.04)">${ex.desc}</div>
+        </div>`;
+    }).join('');
+}
+
+function setMobCat(cat) { mobActiveCat = cat; renderMobLibrary(); }
+
+function openMobLibraryForBuilder() {
+    mobForBuilder = true;
+    switchMobTab('library');
+}
+
+function addMobToBuilder(libIdx) {
+    const ex = MOB_LIBRARY[libIdx];
+    if (!mobBuilderList.find(e=>e.name===ex.name)) {
+        mobBuilderList.push({...ex});
+        toast('✓ '+ex.name+' añadido');
+    }
+    mobForBuilder = false;
+    switchMobTab('builder');
+}
+
+function renderMobBuilder() {
+    const listEl = document.getElementById('mob-builder-list');
+    if (!listEl) return;
+    if (!mobBuilderList.length) {
+        listEl.innerHTML = '<div style="text-align:center;padding:16px;font-size:13px;color:var(--dim)">Sin ejercicios. Añade desde la biblioteca.</div>';
+        return;
+    }
+    listEl.innerHTML = mobBuilderList.map((ex,i) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+            background:var(--s2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px">
+            <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text)">${ex.name}</div>
+                <div style="font-size:11px;color:var(--dim)">${ex.cat}</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+                <input class="inp inp-sm" type="number" value="${ex.sets||2}" style="width:44px"
+                    onchange="mobBuilderList[${i}].sets=+this.value">
+                <span style="font-size:11px;color:var(--dim)">sets</span>
+                <button onclick="mobBuilderList.splice(${i},1);renderMobBuilder()"
+                    style="color:var(--red);background:none;border:none;font-size:12px;cursor:pointer;padding:4px">✕</button>
+            </div>
+        </div>`).join('');
+
+    // Render saved routines
+    const rl = document.getElementById('mob-routines-list');
+    if (rl) {
+        rl.innerHTML = dbMobRoutines.map((r,i) => `
+            <div class="mob-card">
+                <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+                    <div style="flex:1">
+                        <div style="font-size:14px;font-weight:700;color:var(--text)">${r.name}</div>
+                        <div style="font-size:12px;color:var(--dim)">${r.focus||''} · ${r.exercises.length} ejercicios</div>
+                    </div>
+                    <button onclick="dbMobRoutines.splice(${i},1);saveMobRoutines();renderMobBuilder()"
+                        style="color:var(--dim);background:none;border:none;font-size:13px;cursor:pointer">✕</button>
+                </div>
+            </div>`).join('') || '<div style="text-align:center;padding:20px;font-size:13px;color:var(--dim)">Sin rutinas guardadas.</div>';
+    }
+}
+
+function saveMobRoutine() {
+    const name  = document.getElementById('mob-rtn-name').value.trim();
+    const focus = document.getElementById('mob-rtn-focus').value;
+    if (!name) { toast('Escribe un nombre para la rutina'); return; }
+    if (!mobBuilderList.length) { toast('Añade al menos un ejercicio'); return; }
+    dbMobRoutines.push({ name, focus, exercises: [...mobBuilderList] });
+    saveMobRoutines();
+    mobBuilderList = [];
+    document.getElementById('mob-rtn-name').value = '';
+    renderMobBuilder();
+    renderMobSession();
+    toast('✓ Rutina guardada: '+name);
+}
+
+function renderMobHistory() {
+    const stats = document.getElementById('mob-hist-stats');
+    const totalSess = dbMobSessions.length;
+    const thisWeek  = dbMobSessions.filter(s=>{ const d=new Date(s.date+'T12:00:00'); return (Date.now()-d)<7*86400000; });
+    const totalExs  = dbMobSessions.reduce((s,sess)=>s+(sess.exercises?.length||0), 0);
+    if (stats) stats.innerHTML = `
+        <div class="stat-tile st-purple">
+            <div class="stat-label">Sesiones totales</div>
+            <div class="stat-val" style="color:var(--purple)">${totalSess}</div>
+        </div>
+        <div class="stat-tile st-green">
+            <div class="stat-label">Esta semana</div>
+            <div class="stat-val" style="color:var(--green)">${thisWeek.length}</div>
+            <div class="stat-unit">sesiones</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-label">Ejercicios totales</div>
+            <div class="stat-val" style="color:var(--acc)">${totalExs}</div>
+        </div>`;
+
+    const listEl = document.getElementById('mob-history-list');
+    if (!listEl) return;
+    if (!dbMobSessions.length) {
+        listEl.innerHTML = '<div style="text-align:center;padding:32px;font-size:13px;color:var(--dim)">Sin sesiones registradas todavía.</div>';
+        return;
+    }
+    const MONTHS_S=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    listEl.innerHTML = dbMobSessions.slice(0,20).map((s,i) => {
+        const d = new Date(s.date+'T12:00:00');
+        return `
+        <div class="mob-card">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+                <div style="text-align:center;flex-shrink:0;width:36px">
+                    <div style="font-size:16px;font-weight:700;color:var(--text);line-height:1">${d.getDate()}</div>
+                    <div style="font-size:10px;color:var(--dim)">${MONTHS_S[d.getMonth()]}</div>
+                </div>
+                <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:var(--text)">${s.routineName||'Sesión libre'}</div>
+                    <div style="font-size:11px;color:var(--dim);margin-top:2px">${s.exercises?.length||0} ejercicios · ~${s.duration||0} min</div>
+                </div>
+                <button onclick="dbMobSessions.splice(${i},1);saveMobSessions();renderMobHistory()"
+                    style="color:var(--dim);background:none;border:none;font-size:13px;cursor:pointer">✕</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderMobility() {
+    switchMobTab('session');
+    renderMobLibrary();
+    renderMobBuilder();
+    renderMobHistory();
+}
+
+// Add stat-tile colors needed
 
 </script>
 </body>
