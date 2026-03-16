@@ -860,6 +860,21 @@ let dbLog    = JSON.parse(localStorage.getItem(K_LOG))    || {};
 let dbGoals      = JSON.parse(localStorage.getItem(K_GOALS))      || {kcal:2500, p:150, c:250, f:80};
 let dbWeekAssign = JSON.parse(localStorage.getItem(K_WEEK_ASSIGN)) || {};
 let currentProtoIdx = null;
+const K_BODY       = 'lifeos_nutri_body_v1';
+const K_MENU_PLANS = 'lifeos_nutri_menu_plans_v1';
+let dbBody         = JSON.parse(localStorage.getItem(K_BODY))       || [];
+let dbMenuPlans    = JSON.parse(localStorage.getItem(K_MENU_PLANS))  || [];
+let bodyMetric     = 'peso';
+let bodyChart      = null;
+let menuAddDay     = null;
+let dishIngredients  = [];
+let dishSelectedFood = null;
+let dishActiveCat    = 'Todos';
+let dishCreatorOpen  = true;
+let activeFoodCat    = 'Todos';
+let foodQtyMult      = 1.0;
+let _lastFoodRef     = null;
+let _diarySubTarget  = null;
 let dbDishes = JSON.parse(localStorage.getItem(K_DISHES)) || [];
 
 if (!dbLog[todayStr]) dbLog[todayStr] = [];
@@ -989,10 +1004,6 @@ function delFood(idx) {
 /* ════════════════════════════════
    CREADOR DE PLATOS
 ════════════════════════════════ */
-let dishIngredients  = []; // [{food, grams}]
-let dishSelectedFood = null;
-let dishActiveCat    = 'Todos';
-let dishCreatorOpen  = true;
 
 function toggleDishCreator() {
     dishCreatorOpen = !dishCreatorOpen;
@@ -1267,7 +1278,6 @@ function delDish(i) {
 /* ════════════════════════════════
    BD ALIMENTOS — vista con filtro
 ════════════════════════════════ */
-let activeFoodCat = 'Todos';
 
 function renderFoodBD() {
     const q        = (document.getElementById('search-q').value || '').toLowerCase().trim();
@@ -1340,7 +1350,6 @@ function setFoodCat(cat) {
 }
 
 /* ══ SEARCH (OpenFoodFacts) ══ */
-let foodQtyMult = 1.0;
 
 function setFoodQty(mult) {
     foodQtyMult = mult;
@@ -1410,7 +1419,6 @@ async function doSearch() {
     }
 }
 document.getElementById('search-q').addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(); });
-let _lastFoodRef = null;
 
 function addFromSearchQty(food) {
     const m = foodQtyMult || 1;
@@ -1501,15 +1509,6 @@ renderDishes();
     }, 1600);
 })();
 
-
-/* ══ BODY TRACKING ══ */
-const K_BODY = 'lifeos_nutri_body_v1';
-const K_MENU_PLANS = 'lifeos_nutri_menu_plans_v1';
-let dbBody      = JSON.parse(localStorage.getItem(K_BODY)) || [];
-let dbMenuPlans = JSON.parse(localStorage.getItem(K_MENU_PLANS)) || [];
-let bodyMetric  = 'peso';
-let bodyChart   = null;
-let menuAddDay  = null;
 
 function saveBody()      { localStorage.setItem(K_BODY, JSON.stringify(dbBody)); }
 function saveMenuPlans() { localStorage.setItem(K_MENU_PLANS, JSON.stringify(dbMenuPlans)); }
@@ -2088,7 +2087,6 @@ function substituteProposedDish(dayKey, meal, idx) {
     overlay.style.display = 'flex';
 }
 
-let _diarySubTarget = null;
 function confirmSubstitution(dishIdx) {
     if (!_diarySubTarget) return;
     const allDishes = [...(typeof RECIPES_DB !== 'undefined' ? RECIPES_DB : []), ...(dbDishes || [])];
