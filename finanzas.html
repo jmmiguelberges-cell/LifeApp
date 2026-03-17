@@ -1437,39 +1437,6 @@ setType('income');
 
 renderSummary();
 
-// Splash screen
-(function() {
-    const splash = document.getElementById('splash');
-    if (!splash) return;
-    const shown = sessionStorage.getItem('lifeos_splash');
-    if (shown) { splash.style.display = 'none'; return; }
-    setTimeout(() => {
-        splash.classList.add('hide');
-        setTimeout(() => { splash.style.display = 'none'; }, 500);
-        sessionStorage.setItem('lifeos_splash', '1');
-    }, 1600);
-})();
-
-</script>
-
-
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/LifeApp/sw.js').then(reg => {
-        reg.addEventListener('updatefound', () => {
-            const newSW = reg.installing;
-            newSW.addEventListener('statechange', () => {
-                if (newSW.state === 'activated') {
-                    window.location.reload(); // reload to get fresh files
-                }
-            });
-        });
-    });
-    // If controlled by old SW, force update check
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-        window.location.reload();
-    });
-}
 
 
 /* ── PATRIMONIO SUB-TABS ── */
@@ -1745,6 +1712,43 @@ function renderPatrimonioChart(currentNet) {
                 }}
             }
         }
+    });
+}
+
+
+
+// Splash screen
+(function() {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+    const shown = sessionStorage.getItem('lifeos_splash');
+    if (shown) { splash.style.display = 'none'; return; }
+    setTimeout(() => {
+        splash.classList.add('hide');
+        setTimeout(() => { splash.style.display = 'none'; }, 500);
+        sessionStorage.setItem('lifeos_splash', '1');
+    }, 1600);
+})();
+
+</script>
+
+
+<script>
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/LifeApp/sw.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+            const newSW = reg.installing;
+            newSW.addEventListener('statechange', () => {
+                if (newSW.state === 'activated') {
+                    window.location.reload(); // reload to get fresh files
+                }
+            });
+        });
+    });
+    // If controlled by old SW, force update check
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
     });
 }
 
