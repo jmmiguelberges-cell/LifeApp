@@ -644,9 +644,18 @@
             </div>
             <!-- filter -->
             <div style="display:flex;gap:6px;margin-bottom:12px">
-                <button onclick="setPufosFilter('all')"     id="pf-all"    class="filter-btn active-filter">Todos</button>
-                <button onclick="setPufosFilter('me_debe')" id="pf-me"     class="filter-btn">Me deben</button>
-                <button onclick="setPufosFilter('le_debo')" id="pf-ellos"  class="filter-btn">Les debo</button>
+                <button onclick="setPufosFilter('all')" id="pf-all"
+                    style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+                    background:rgba(91,138,240,0.15);color:var(--acc);border:1px solid rgba(91,138,240,0.3);
+                    font-family:'DM Sans',sans-serif;transition:all 0.15s">Todos</button>
+                <button onclick="setPufosFilter('me_debe')" id="pf-me"
+                    style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+                    background:transparent;color:var(--dim);border:1px solid var(--border);
+                    font-family:'DM Sans',sans-serif;transition:all 0.15s">Me deben</button>
+                <button onclick="setPufosFilter('le_debo')" id="pf-ellos"
+                    style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+                    background:transparent;color:var(--dim);border:1px solid var(--border);
+                    font-family:'DM Sans',sans-serif;transition:all 0.15s">Les debo</button>
             </div>
             <div id="pufos-list"></div>
             <!-- add form -->
@@ -1259,9 +1268,9 @@ function setPufosFilter(f) {
         const el = document.getElementById('pf-' + k);
         if (!el) return;
         const active = (k==='all'&&f==='all') || (k==='me'&&f==='me_debe') || (k==='ellos'&&f==='le_debo');
-        el.style.background = active ? 'rgba(201,168,76,0.15)' : 'var(--s2)';
-        el.style.color      = active ? 'var(--acc)' : 'var(--dim)';
-        el.style.borderColor= active ? 'rgba(201,168,76,0.3)' : 'var(--border)';
+        el.style.background  = active ? 'rgba(91,138,240,0.15)' : 'transparent';
+        el.style.color       = active ? 'var(--acc)' : 'var(--dim)';
+        el.style.borderColor = active ? 'rgba(91,138,240,0.3)' : 'var(--border)';
     });
     renderPufos();
 }
