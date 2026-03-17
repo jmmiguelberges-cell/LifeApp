@@ -1342,8 +1342,10 @@ function renderPufos() {
     const lesDebo  = active.filter(p=>p.dir==='le_debo').reduce((s,p)=>s+p.amount,0);
     const nDeben   = active.filter(p=>p.dir==='me_debe').length;
     const nDebo    = active.filter(p=>p.dir==='le_debo').length;
-    document.getElementById('pufos-me-deben').textContent = fmt(meDeben);
-    document.getElementById('pufos-les-debo').textContent = fmt(lesDebo);
+    const meEl = document.getElementById('pufos-me-deben');
+    const leEl = document.getElementById('pufos-les-debo');
+    if (meEl) meEl.textContent = fmt(meDeben);
+    if (leEl) leEl.textContent = fmt(lesDebo);
     document.getElementById('pufos-n-deben').textContent  = nDeben + ' pufo' + (nDeben!==1?'s':'');
     document.getElementById('pufos-n-debo').textContent   = nDebo  + ' pufo' + (nDebo!==1?'s':'');
 
@@ -1430,7 +1432,6 @@ function renderPufos() {
 // Set default date to today
 document.getElementById('tx-date').value = todayISO();
 if(document.getElementById('pufo-date')) document.getElementById('pufo-date').value = todayISO();
-renderPufos();
 
 // Init type selector
 setType('income');
