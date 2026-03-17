@@ -663,10 +663,11 @@
         <!-- Seleccionar rutina -->
         <div id="session-start" class="card card-pad" style="margin-bottom:12px">
             <div class="sec-label" style="margin-bottom:10px">Iniciar sesión</div>
-            <select class="inp" id="routine-picker" style="margin-bottom:8px">
+            <select class="inp" id="routine-picker" style="margin-bottom:8px" onchange="previewRoutine()">
                 <option value="">— Sesión libre —</option>
             </select>
-            <button class="btn-primary" onclick="startSession()">Empezar entrenamiento</button>
+            <div id="routine-preview" style="margin-bottom:8px"></div>
+            <button class="btn-primary" onclick="startSession()">▶ Empezar entrenamiento</button>
         </div>
 
         <!-- Sesión activa -->
@@ -679,6 +680,10 @@
             <button onclick="openModal()" style="width:100%;background:rgba(224,122,95,0.08);color:var(--acc);border:1px dashed rgba(224,122,95,0.25);border-radius:12px;padding:14px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;margin-top:4px">
                 + Añadir ejercicio
             </button>
+            <textarea id="session-notes" placeholder="Notas de la sesión (sensaciones, PR, lesiones...)"
+                style="width:100%;background:var(--s1);border:1px solid var(--border);color:var(--text);
+                border-radius:12px;padding:12px;font-size:13px;font-family:'DM Sans',sans-serif;
+                resize:none;height:72px;margin-top:8px;outline:none"></textarea>
         </div>
     </div>
 
@@ -1360,6 +1365,34 @@ function refreshRoutinePicker() {
     }
 }
 
+function previewRoutine() {
+    const rtnIdx  = document.getElementById('routine-picker').value;
+    const prevEl  = document.getElementById('routine-preview');
+    if (!prevEl) return;
+    if (rtnIdx === '') { prevEl.innerHTML = ''; return; }
+    const rtn = dbRoutines[+rtnIdx];
+    if (!rtn) { prevEl.innerHTML = ''; return; }
+
+    prevEl.innerHTML = `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:12px">
+        <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+            ${rtn.exercises.length} ejercicios
+        </div>
+        ${rtn.exercises.map(e => {
+            const last    = getLastPerformance(e.name);
+            const lastStr = last ? last.sets.slice(0,3).map(s=>`${s.weight||0}×${s.reps||0}`).join(' · ') : 'Sin datos';
+            const col     = GROUP_COLOR[dbExercises.find(x=>x.name===e.name)?.group||''] || '#8a8d96';
+            return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+                <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>
+                <div style="flex:1">
+                    <div style="font-weight:600;color:var(--text)">${e.name}</div>
+                    <div style="font-size:10px;color:var(--dim);margin-top:1px">${e.sets}×${e.reps}r · Última: ${lastStr}</div>
+                </div>
+                ${last?`<div style="font-size:10px;color:var(--sub)">${fmtRelDate(last.date)}</div>`:''}
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
 function startSession() {
     const rtnIdx = document.getElementById('routine-picker').value;
     const rtn    = rtnIdx!=='' ? dbRoutines[+rtnIdx] : null;
@@ -1385,6 +1418,36 @@ function addExerciseToSession(name, group) {
     activeSession.exercises.push({name, group, sets:[{weight:0,reps:10,done:false}]});
     localStorage.setItem(K_ACTIVE, JSON.stringify(activeSession));
     renderExBlocks();
+}
+
+
+/* ── LAST PERFORMANCE (Hevy-style) ── */
+function getLastPerformance(exName) {
+    // Find last session (not current) where this exercise was done
+    for (let i = 0; i < dbSessions.length; i++) {
+        const sess = dbSessions[i];
+        const ex = sess.exercises?.find(e => e.name === exName);
+        if (ex && ex.sets?.length) {
+            return {
+                date:    sess.date,
+                sets:    ex.sets,
+                totalKg: ex.totalKg || 0,
+                maxW:    ex.maxWeight || Math.max(...ex.sets.map(s => s.weight||0)),
+            };
+        }
+    }
+    return null;
+}
+
+function fmtRelDate(dateStr) {
+    if (!dateStr) return '';
+    const d    = new Date(dateStr + 'T12:00:00');
+    const diff = Math.round((Date.now() - d) / 86400000);
+    if (diff === 0) return 'hoy';
+    if (diff === 1) return 'ayer';
+    if (diff < 7)  return `hace ${diff} días`;
+    if (diff < 14) return 'hace 1 semana';
+    return `hace ${Math.round(diff/7)} semanas`;
 }
 
 function renderExBlocks() {
@@ -1500,7 +1563,7 @@ function finishSession() {
     const duration = Math.round((Date.now()-activeSession.startTime)/60000);
     const session = {
         date:todayStr, name:activeSession.name,
-        duration, totalKg:Math.round(totalKg),
+        duration, totalKg:Math.round(totalKg), notes,
         exercises:exSummary
     };
     dbSessions.unshift(session);
