@@ -418,10 +418,8 @@
     <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('summary',this)">Resumen</button>
         <button class="tab-btn" onclick="switchTab('moves',this)">Movimientos</button>
-        <button class="tab-btn" onclick="switchTab('savings',this)">Huchas</button>
         <button class="tab-btn" onclick="switchTab('analysis',this)">Análisis</button>
-        <button class="tab-btn" onclick="switchTab('pufos',this)">Pufos</button>
-        <button class="tab-btn" onclick="switchTab('cuentas',this)">Patrimonio</button>
+        <button class="tab-btn" onclick="switchTab('patrimonio',this)">Patrimonio</button>
     </div>
 </div>
 
@@ -530,33 +528,6 @@
 
     </div>
 
-    <!-- ═══ HUCHAS ═══ -->
-    <div id="view-savings" class="view s1">
-
-        <div id="savings-list"></div>
-
-        <!-- Add hucha -->
-        <div class="sec-label" style="margin-top:4px">Nueva hucha</div>
-        <div class="add-form" style="margin-bottom:0">
-            <div class="row">
-                <input class="inp" id="h-name"   type="text"   placeholder="Nombre (ej: Viaje a Japón)">
-                <input class="inp" id="h-emoji"  type="text"   placeholder="🎯" maxlength="2" style="flex:0 0 60px;text-align:center;font-size:20px">
-            </div>
-            <div class="row">
-                <input class="inp" id="h-goal"    type="number" placeholder="Objetivo €">
-                <input class="inp" id="h-current" type="number" placeholder="Tengo ya €">
-            </div>
-            <input class="inp" id="h-deadline" type="date" placeholder="Fecha límite (opcional)" style="font-size:13px">
-            <select class="inp" id="h-color">
-                <option value="#c9a84c">🟡 Dorado</option>
-                <option value="#52b788">🟢 Verde</option>
-                <option value="#5b8af0">🔵 Azul</option>
-                <option value="#9b7fe0">🟣 Morado</option>
-                <option value="#e07a5f">🟠 Naranja</option>
-            </select>
-            <button class="btn-primary" onclick="addHucha()">Crear hucha</button>
-        </div>
-
     </div>
 
     <!-- ═══ ANÁLISIS ═══ -->
@@ -588,96 +559,152 @@
 </div>
 
 
-    <!-- ═══ PUFOS ═══ -->
-    <div id="view-pufos" class="view s1">
+    <!-- ═══ PATRIMONIO (cuentas + huchas + pufos) ═══ -->
+    <div id="view-patrimonio" class="view s1">
 
-        <!-- Hero resumen -->
-        <div class="stat-grid" style="margin-bottom:12px">
-            <div class="stat-tile st-green">
-                <div class="stat-label">Me deben</div>
-                <div style="font-family:'DM Serif Display',serif;font-size:32px;font-weight:400;line-height:1;color:var(--green)" id="pufos-me-deben">0,00 €</div>
-                <div class="stat-unit" id="pufos-n-deben">0 pufos</div>
+        <!-- Sub-menu -->
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+            <button onclick="switchPatTab('cuentas')" id="ptab-cuentas"
+                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;
+                background:rgba(201,168,76,0.15);color:var(--yellow);border:1px solid rgba(201,168,76,0.3);
+                font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">🏦 Cuentas</button>
+            <button onclick="switchPatTab('huchas')" id="ptab-huchas"
+                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;
+                background:transparent;color:var(--dim);border:1px solid var(--border);
+                font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">🎯 Huchas</button>
+            <button onclick="switchPatTab('pufos')" id="ptab-pufos"
+                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;
+                background:transparent;color:var(--dim);border:1px solid var(--border);
+                font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">💸 Pufos</button>
+        </div>
+
+        <!-- ── CUENTAS ── -->
+        <div id="pat-view-cuentas">
+            <!-- Patrimonio neto hero -->
+            <div style="background:linear-gradient(145deg,#191c22,#1a1f2c);border:1px solid rgba(91,138,240,0.2);
+                border-radius:20px;padding:20px;margin-bottom:12px;text-align:center">
+                <div style="font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Patrimonio neto</div>
+                <div id="net-worth-display" style="font-family:'DM Serif Display',serif;font-size:44px;font-weight:400;line-height:1;color:#5b8af0">0,00 €</div>
+                <div id="net-worth-sub" style="font-size:12px;color:var(--sub);margin-top:6px">Activos − Pasivos</div>
+                <div style="display:flex;justify-content:center;gap:24px;margin-top:14px">
+                    <div style="text-align:center">
+                        <div style="font-size:12px;color:var(--green);font-weight:700" id="total-assets">0 €</div>
+                        <div style="font-size:10px;color:var(--dim);margin-top:2px">Activos</div>
+                    </div>
+                    <div style="width:1px;background:var(--border)"></div>
+                    <div style="text-align:center">
+                        <div style="font-size:12px;color:var(--red);font-weight:700" id="total-liabilities">0 €</div>
+                        <div style="font-size:10px;color:var(--dim);margin-top:2px">Pasivos</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-tile st-red">
-                <div class="stat-label">Les debo yo</div>
-                <div style="font-family:'DM Serif Display',serif;font-size:32px;font-weight:400;line-height:1;color:var(--red)" id="pufos-les-debo">0,00 €</div>
-                <div class="stat-unit" id="pufos-n-debo">0 pufos</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div class="sec-label" style="margin-bottom:0">Mis cuentas</div>
+                <button onclick="openCuentaForm()"
+                    style="background:rgba(91,138,240,0.1);color:var(--acc);border:1px solid rgba(91,138,240,0.2);
+                    border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;
+                    font-family:'DM Sans',sans-serif;cursor:pointer">+ Añadir cuenta</button>
+            </div>
+            <div id="cuentas-list"></div>
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:12px">
+                <div style="font-size:12px;font-weight:600;color:var(--sub);margin-bottom:12px">Evolución del patrimonio</div>
+                <div style="height:120px"><canvas id="patrimonio-chart"></canvas></div>
             </div>
         </div>
 
-        <!-- Add pufo form -->
-        <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-                <div class="sec-label" style="margin-bottom:0">Nuevo pufo</div>
-            </div>
-            <input class="inp" id="pufo-person" type="text" placeholder="Nombre de la persona">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-                <input class="inp" id="pufo-amount" type="number" step="0.01" placeholder="Importe €" style="margin-bottom:0">
-                <select class="inp" id="pufo-dir" style="margin-bottom:0">
-                    <option value="me_debe">Me lo debe a mí</option>
-                    <option value="le_debo">Se lo debo yo</option>
+        <!-- ── HUCHAS ── -->
+        <div id="pat-view-huchas" style="display:none">
+            <div id="savings-list"></div>
+            <div class="sec-label" style="margin-top:4px">Nueva hucha</div>
+            <div class="add-form" style="margin-bottom:0">
+                <div class="row">
+                    <input class="inp" id="h-name"   type="text"   placeholder="Nombre (ej: Viaje a Japón)">
+                    <input class="inp" id="h-emoji"  type="text"   placeholder="🎯" maxlength="2" style="flex:0 0 60px;text-align:center;font-size:20px">
+                </div>
+                <div class="row">
+                    <input class="inp" id="h-goal"    type="number" placeholder="Objetivo €">
+                    <input class="inp" id="h-current" type="number" placeholder="Tengo ya €">
+                </div>
+                <input class="inp" id="h-deadline" type="date" style="font-size:13px">
+                <select class="inp" id="h-color">
+                    <option value="#c9a84c">🟡 Dorado</option>
+                    <option value="#52b788">🟢 Verde</option>
+                    <option value="#5b8af0">🔵 Azul</option>
+                    <option value="#9b7fe0">🟣 Morado</option>
+                    <option value="#e07a5f">🟠 Naranja</option>
                 </select>
-            </div>
-            <input class="inp" id="pufo-concept" type="text" placeholder="Concepto (ej: cena, viaje...)">
-            <input class="inp" id="pufo-date" type="date">
-            <button class="btn-primary" onclick="addPufo()">Registrar pufo</button>
-        </div>
-
-        <!-- Active pufos -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div class="sec-label" style="margin-bottom:0">Pufos activos</div>
-            <div id="pufos-filter-row" style="display:flex;gap:6px">
-                <button onclick="setPufosFilter('all')" id="pf-all"
-                    style="padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;
-                    background:rgba(201,168,76,0.15);color:var(--acc);border:1px solid rgba(201,168,76,0.3);
-                    font-family:'DM Sans',sans-serif">Todos</button>
-                <button onclick="setPufosFilter('me_debe')" id="pf-me"
-                    style="padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;
-                    background:var(--s2);color:var(--dim);border:1px solid var(--border);
-                    font-family:'DM Sans',sans-serif">Me deben</button>
-                <button onclick="setPufosFilter('le_debo')" id="pf-ellos"
-                    style="padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;
-                    background:var(--s2);color:var(--dim);border:1px solid var(--border);
-                    font-family:'DM Sans',sans-serif">Les debo</button>
+                <button class="btn-primary" onclick="addHucha()">Crear hucha</button>
             </div>
         </div>
-        <div id="pufos-list"></div>
 
-        <!-- Settle modal -->
-        <div id="pufo-settle-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);
-            z-index:9000;align-items:flex-end;justify-content:center">
+        <!-- ── PUFOS ── -->
+        <div id="pat-view-pufos" style="display:none">
+            <!-- hero stats -->
+            <div class="stat-grid" style="margin-bottom:12px">
+                <div class="stat-tile"><div class="stat-label">Me deben</div><div class="stat-val inc" id="pufos-me-deben">0€</div></div>
+                <div class="stat-tile"><div class="stat-label">Les debo</div><div class="stat-val exp" id="pufos-les-debo">0€</div></div>
+            </div>
+            <!-- filter -->
+            <div style="display:flex;gap:6px;margin-bottom:12px">
+                <button onclick="setPufosFilter('all')"     id="pf-all"    class="filter-btn active-filter">Todos</button>
+                <button onclick="setPufosFilter('me_debe')" id="pf-me"     class="filter-btn">Me deben</button>
+                <button onclick="setPufosFilter('le_debo')" id="pf-ellos"  class="filter-btn">Les debo</button>
+            </div>
+            <div id="pufos-list"></div>
+            <!-- add form -->
+            <div class="sec-label" style="margin-top:12px">Nuevo pufo</div>
+            <div class="add-form" style="margin-bottom:0">
+                <div class="type-toggle">
+                    <button class="type-btn" id="pufo-btn-me"    onclick="setPufoType('me_debe')">Me deben</button>
+                    <button class="type-btn active-inc" id="pufo-btn-ellos" onclick="setPufoType('le_debo')">Les debo</button>
+                </div>
+                <input class="inp" id="pufo-who"    type="text"   placeholder="¿Quién? (nombre)">
+                <input class="inp" id="pufo-amount" type="number" step="0.01" placeholder="Importe €">
+                <input class="inp" id="pufo-reason" type="text"   placeholder="Motivo (opcional)">
+                <input class="inp" id="pufo-date"   type="date"   style="font-size:13px">
+                <button class="btn-primary" onclick="addPufo()">Añadir pufo</button>
+            </div>
+            <div id="pufos-settled-section" style="display:none;margin-top:16px">
+                <div class="sec-label">Historial saldados</div>
+                <div id="pufos-settled-list"></div>
+            </div>
+        </div>
+
+        <!-- Cuenta modal -->
+        <div id="cuenta-modal" onclick="if(event.target===this)closeCuentaModal()" style="display:none;position:fixed;inset:0;
+            background:rgba(0,0,0,0.75);z-index:9000;align-items:flex-end;justify-content:center;
+            backdrop-filter:blur(4px)">
             <div style="background:var(--s1);border:1px solid var(--border);border-radius:20px 20px 0 0;
-                padding:24px 20px 40px;width:100%;max-width:480px">
-                <div style="width:36px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 20px"></div>
-                <div class="sec-label" style="margin-bottom:4px">Cerrar pufo</div>
-                <div id="settle-desc" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:16px"></div>
-                <div style="font-size:13px;color:var(--sub);margin-bottom:10px">¿Mover el dinero a qué cuenta de huchas?</div>
-                <select class="inp" id="settle-target">
-                    <option value="none">No mover — solo marcar como saldado</option>
-                </select>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-                    <button onclick="document.getElementById('pufo-settle-modal').style.display='none'"
-                        style="padding:13px;border-radius:12px;background:var(--s2);color:var(--sub);
-                        border:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer">
-                        Cancelar
-                    </button>
-                    <button onclick="confirmSettle()"
-                        style="padding:13px;border-radius:12px;background:var(--green);color:#fff;
-                        border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer">
-                        ✓ Saldado
-                    </button>
+                width:100%;max-width:480px;padding:20px 20px 40px">
+                <div style="width:36px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
+                <div style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:16px" id="cuenta-modal-title">Nueva cuenta</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                    <input class="inp" id="cuenta-name" type="text" placeholder="Nombre (ej: Cuenta ING)" style="margin-bottom:0">
+                    <select class="inp" id="cuenta-type" style="margin-bottom:0">
+                        <option value="bank">🏦 Cuenta bancaria</option>
+                        <option value="savings">💰 Ahorro</option>
+                        <option value="invest">📈 Inversión</option>
+                        <option value="cash">💵 Efectivo</option>
+                        <option value="property">🏠 Inmueble</option>
+                        <option value="vehicle">🚗 Vehículo</option>
+                        <option value="pension">👴 Pensión/Plan</option>
+                        <option value="loan">💸 Préstamo</option>
+                        <option value="mortgage">🏠 Hipoteca</option>
+                        <option value="credit">💳 Tarjeta crédito</option>
+                    </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                    <input class="inp" id="cuenta-balance" type="number" step="0.01" placeholder="Saldo actual (€)" style="margin-bottom:0">
+                    <input class="inp" id="cuenta-color" type="color" value="#5b8af0" style="margin-bottom:0;height:44px;cursor:pointer">
+                </div>
+                <input class="inp" id="cuenta-note" type="text" placeholder="Nota opcional">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="closeCuentaModal()" class="btn-ghost" style="width:100%">Cancelar</button>
+                    <button onclick="saveCuenta()" class="btn-primary">Guardar</button>
                 </div>
             </div>
         </div>
-
-        <!-- Settled history -->
-        <div id="pufos-settled-section" style="display:none;margin-top:16px">
-            <div class="sec-label">Historial saldados</div>
-            <div id="pufos-settled-list"></div>
-        </div>
-
     </div>
-
 
 <nav class="nav-bar">
     <div class="nav-item" onclick="go('agenda.html')">
@@ -1445,6 +1472,38 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         window.location.reload();
     });
+}
+
+
+/* ── PATRIMONIO SUB-TABS ── */
+let currentPatTab = 'cuentas';
+
+function switchPatTab(tab) {
+    currentPatTab = tab;
+    const colors = {
+        cuentas: { bg:'rgba(201,168,76,0.15)', color:'var(--yellow)', border:'rgba(201,168,76,0.3)' },
+        huchas:  { bg:'rgba(82,183,136,0.15)', color:'var(--green)',  border:'rgba(82,183,136,0.3)' },
+        pufos:   { bg:'rgba(224,95,95,0.12)',  color:'var(--red)',    border:'rgba(224,95,95,0.25)' },
+    };
+    ['cuentas','huchas','pufos'].forEach(t => {
+        const v = document.getElementById('pat-view-' + t);
+        const b = document.getElementById('ptab-' + t);
+        if (v) v.style.display = t === tab ? 'block' : 'none';
+        if (b) {
+            const active = t === tab;
+            const col = colors[t];
+            b.style.background  = active ? col.bg    : 'transparent';
+            b.style.color       = active ? col.color : 'var(--dim)';
+            b.style.borderColor = active ? col.border: 'var(--border)';
+        }
+    });
+    if (tab === 'cuentas') renderCuentas();
+    if (tab === 'huchas')  renderSavings();
+    if (tab === 'pufos')   { renderPufos(); setPufosFilter('all'); }
+}
+
+function renderPatrimonioTab(tab) {
+    switchPatTab(tab || currentPatTab || 'cuentas');
 }
 
 /* ════════════════════════════════════════
