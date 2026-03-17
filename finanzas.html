@@ -6,7 +6,7 @@
     <title>Life OS — Finanzas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeApp/icono.jpg">
+    <link rel="apple-touch-icon" href="https://jmmiguelberges-cell.github.io/LifeApp/icono.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -421,6 +421,7 @@
         <button class="tab-btn" onclick="switchTab('savings',this)">Huchas</button>
         <button class="tab-btn" onclick="switchTab('analysis',this)">Análisis</button>
         <button class="tab-btn" onclick="switchTab('pufos',this)">Pufos</button>
+        <button class="tab-btn" onclick="switchTab('cuentas',this)">Patrimonio</button>
     </div>
 </div>
 
@@ -767,6 +768,7 @@ function switchTab(view, el) {
     if (view==='savings')  renderSavings();
     if (view==='analysis') renderAnalysis();
     if (view==='pufos')    renderPufos();
+    if (view==='cuentas')  renderCuentas();
 }
 
 /* ══════════════════════════════════════
@@ -1444,6 +1446,252 @@ if ('serviceWorker' in navigator) {
         window.location.reload();
     });
 }
+
+/* ════════════════════════════════════════
+   CUENTAS / PATRIMONIO
+════════════════════════════════════════ */
+const K_CUENTAS = 'lifeos_finances_cuentas_v1';
+let dbCuentas = JSON.parse(localStorage.getItem(K_CUENTAS)) || [];
+let editCuentaIdx = null;
+let patrimonioChart = null;
+
+function saveCuentas() { localStorage.setItem(K_CUENTAS, JSON.stringify(dbCuentas)); }
+
+const CUENTA_TYPE = {
+    bank:     { label:'Cuenta bancaria', icon:'🏦', asset:true  },
+    savings:  { label:'Ahorro',          icon:'💰', asset:true  },
+    invest:   { label:'Inversión',       icon:'📈', asset:true  },
+    cash:     { label:'Efectivo',        icon:'💵', asset:true  },
+    property: { label:'Inmueble',        icon:'🏠', asset:true  },
+    vehicle:  { label:'Vehículo',        icon:'🚗', asset:true  },
+    pension:  { label:'Pensión/Plan',    icon:'👴', asset:true  },
+    loan:     { label:'Préstamo',        icon:'💸', asset:false },
+    mortgage: { label:'Hipoteca',        icon:'🏠', asset:false },
+    credit:   { label:'Tarjeta crédito', icon:'💳', asset:false },
+};
+
+function openCuentaForm(idx) {
+    editCuentaIdx = idx != null ? idx : null;
+    const titleEl = document.getElementById('cuenta-modal-title');
+    if (titleEl) titleEl.textContent = idx != null ? 'Editar cuenta' : 'Nueva cuenta';
+
+    if (idx != null) {
+        const cu = dbCuentas[idx];
+        document.getElementById('cuenta-name').value    = cu.name;
+        document.getElementById('cuenta-type').value    = cu.type;
+        document.getElementById('cuenta-balance').value = cu.balance;
+        document.getElementById('cuenta-color').value   = cu.color || '#5b8af0';
+        document.getElementById('cuenta-note').value    = cu.note || '';
+    } else {
+        ['cuenta-name','cuenta-balance','cuenta-note'].forEach(id => {
+            const el = document.getElementById(id); if(el) el.value = '';
+        });
+        document.getElementById('cuenta-type').value  = 'bank';
+        document.getElementById('cuenta-color').value = '#5b8af0';
+    }
+    document.getElementById('cuenta-modal').style.display = 'flex';
+}
+
+function closeCuentaModal() {
+    document.getElementById('cuenta-modal').style.display = 'none';
+    editCuentaIdx = null;
+}
+
+function saveCuenta() {
+    const name    = document.getElementById('cuenta-name').value.trim();
+    const type    = document.getElementById('cuenta-type').value;
+    const balance = parseFloat(document.getElementById('cuenta-balance').value) || 0;
+    const color   = document.getElementById('cuenta-color').value;
+    const note    = document.getElementById('cuenta-note').value.trim();
+    if (!name) { toast('Escribe un nombre para la cuenta'); return; }
+
+    const cuenta = { name, type, balance, color, note, updatedAt: todayISO() };
+    if (editCuentaIdx != null) {
+        dbCuentas[editCuentaIdx] = cuenta;
+    } else {
+        dbCuentas.push(cuenta);
+    }
+    saveCuentas();
+    closeCuentaModal();
+    renderCuentas();
+    toast('✓ ' + name + ' guardada');
+}
+
+function updateCuentaBalance(idx) {
+    const inp = document.getElementById('qbal-' + idx);
+    if (!inp) return;
+    const val = parseFloat(inp.value);
+    if (isNaN(val)) return;
+    dbCuentas[idx].balance   = val;
+    dbCuentas[idx].updatedAt = todayISO();
+    saveCuentas();
+    renderCuentas();
+    toast('✓ Saldo actualizado');
+}
+
+function deleteCuenta(idx) {
+    if (!confirm('¿Eliminar "' + dbCuentas[idx].name + '"?')) return;
+    dbCuentas.splice(idx, 1);
+    saveCuentas();
+    renderCuentas();
+}
+
+function renderCuentas() {
+    // Net worth calc
+    let assets = 0, liabilities = 0;
+    dbCuentas.forEach(cu => {
+        const meta = CUENTA_TYPE[cu.type];
+        if (meta?.asset) assets += cu.balance;
+        else liabilities += Math.abs(cu.balance);
+    });
+    const net = assets - liabilities;
+
+    const nwEl  = document.getElementById('net-worth-display');
+    const asEl  = document.getElementById('total-assets');
+    const liEl  = document.getElementById('total-liabilities');
+    const subEl = document.getElementById('net-worth-sub');
+    if (nwEl) {
+        nwEl.textContent = fmt(net);
+        nwEl.style.color = net >= 0 ? '#5b8af0' : 'var(--red)';
+    }
+    if (asEl)  asEl.textContent  = fmtShort(assets);
+    if (liEl)  liEl.textContent  = fmtShort(liabilities);
+    if (subEl) subEl.textContent = `${dbCuentas.length} cuenta${dbCuentas.length!==1?'s':''} · actualizado hoy`;
+
+    // Accounts list
+    const listEl = document.getElementById('cuentas-list');
+    if (!listEl) return;
+
+    if (!dbCuentas.length) {
+        listEl.innerHTML = `<div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:28px;text-align:center">
+            <div style="font-size:32px;margin-bottom:10px">🏦</div>
+            <div style="font-size:14px;font-weight:600;color:var(--sub);margin-bottom:6px">Sin cuentas todavía</div>
+            <div style="font-size:12px;color:var(--dim)">Añade tus cuentas bancarias, inversiones y deudas para ver tu patrimonio neto</div>
+        </div>`;
+        return;
+    }
+
+    // Group by asset/liability
+    const assetAccounts = dbCuentas.filter((cu,i) => CUENTA_TYPE[cu.type]?.asset !== false);
+    const liabAccounts  = dbCuentas.filter((cu,i) => CUENTA_TYPE[cu.type]?.asset === false);
+
+    const renderGroup = (title, accounts, isLiability) => {
+        if (!accounts.length) return '';
+        return `
+        <div style="margin-bottom:12px">
+            <div style="font-size:10px;font-weight:700;color:${isLiability?'var(--red)':'var(--green)'};
+                text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">${title}</div>
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+                ${accounts.map(({cu,idx}) => {
+                    const meta = CUENTA_TYPE[cu.type] || {icon:'💰',label:'Cuenta'};
+                    return `
+                    <div style="padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.04);
+                        display:flex;align-items:center;gap:12px">
+                        <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;
+                            background:${cu.color}18;border:1px solid ${cu.color}30;
+                            display:flex;align-items:center;justify-content:center;font-size:18px">
+                            ${meta.icon}
+                        </div>
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:1px">${cu.name}</div>
+                            <div style="font-size:11px;color:var(--dim)">${meta.label}${cu.note?' · '+cu.note:''}</div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0">
+                            <div style="font-family:'DM Serif Display',serif;font-size:18px;color:${isLiability?'var(--red)':'var(--text)'};line-height:1">${fmtShort(cu.balance)}</div>
+                            <div style="font-size:10px;color:var(--dim);margin-top:2px">actualizado ${cu.updatedAt||'—'}</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+                            <button onclick="openCuentaForm(${idx})"
+                                style="width:28px;height:28px;border-radius:7px;background:rgba(91,138,240,0.08);
+                                color:var(--acc);border:1px solid rgba(91,138,240,0.15);font-size:12px;cursor:pointer">✎</button>
+                            <button onclick="deleteCuenta(${idx})"
+                                style="width:28px;height:28px;border-radius:7px;background:rgba(224,95,95,0.06);
+                                color:var(--red);border:1px solid rgba(224,95,95,0.12);font-size:11px;cursor:pointer">✕</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    };
+
+    // Map to include original indices
+    const assetIdx  = dbCuentas.map((cu,i)=>({cu,idx:i})).filter(({cu}) => CUENTA_TYPE[cu.type]?.asset !== false);
+    const liabIdx   = dbCuentas.map((cu,i)=>({cu,idx:i})).filter(({cu}) => CUENTA_TYPE[cu.type]?.asset === false);
+
+    listEl.innerHTML =
+        renderGroup('Activos', assetIdx, false) +
+        renderGroup('Pasivos', liabIdx, true);
+
+    // Patrimonio evolution chart (using localStorage history)
+    renderPatrimonioChart(net);
+}
+
+function renderPatrimonioChart(currentNet) {
+    const ctx = document.getElementById('patrimonio-chart');
+    if (!ctx) return;
+
+    // Store current net worth snapshot
+    const K_PATR_HIST = 'lifeos_patrimonio_hist_v1';
+    let hist = JSON.parse(localStorage.getItem(K_PATR_HIST)) || [];
+    const todayEntry = hist.find(h => h.date === todayISO());
+    if (todayEntry) {
+        todayEntry.net = currentNet;
+    } else {
+        hist.push({ date: todayISO(), net: currentNet });
+    }
+    // Keep last 90 entries
+    if (hist.length > 90) hist = hist.slice(-90);
+    localStorage.setItem(K_PATR_HIST, JSON.stringify(hist));
+
+    if (patrimonioChart) { patrimonioChart.destroy(); patrimonioChart = null; }
+
+    const labels = hist.map(h => { const d = new Date(h.date+'T12:00:00'); return d.getDate()+'/'+( d.getMonth()+1); });
+    const data   = hist.map(h => h.net);
+    const color  = currentNet >= 0 ? '#5b8af0' : '#e05f5f';
+
+    patrimonioChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                data,
+                borderColor: color,
+                borderWidth: 2,
+                backgroundColor: (ctx2) => {
+                    const chart = ctx2.chart;
+                    const {ctx: cv, chartArea} = chart;
+                    if (!chartArea) return color + '18';
+                    const grad = cv.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    grad.addColorStop(0, color + '44');
+                    grad.addColorStop(1, color + '05');
+                    return grad;
+                },
+                fill: true, tension: 0.4,
+                pointRadius: hist.length <= 10 ? 4 : 0,
+                pointBackgroundColor: color,
+                pointBorderColor: '#111318',
+                pointBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: {
+                callbacks: { label: ctx => fmt(ctx.raw) },
+                backgroundColor: '#191c22', borderColor: 'rgba(255,255,255,0.07)',
+                borderWidth: 1, titleColor: '#e8e9ee', bodyColor: '#8a8d96',
+                padding: 10, cornerRadius: 8,
+            }},
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#4a4d56', font: { size: 9 }, maxTicksLimit: 6 } },
+                y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: {
+                    color: '#4a4d56', font: { size: 9 },
+                    callback: v => fmtShort(v)
+                }}
+            }
+        }
+    });
+}
+
 </script>
 </body>
 </html>
