@@ -290,6 +290,9 @@
         </div>
     </div>
 
+    <!-- Weekly overview strip -->
+    <div id="weekly-strip" style="display:flex;gap:4px;margin:10px 0 14px"></div>
+
     <div id="today-list"></div>
 
     <div id="today-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--dim)">
@@ -601,6 +604,7 @@ function toggleDone(id){
 
 /* ══ RENDER TODAY ══ */
 function renderToday(){
+    renderWeeklyStrip();
     const active = dbHabits.filter(h=>habitActiveToday(h));
     const listEl = document.getElementById('today-list');
     const emptyEl = document.getElementById('today-empty');
@@ -650,13 +654,14 @@ function renderToday(){
 
         return `
         <div class="habit-today-card${isDone?' done':''}" id="htc-${h.id}">
-            <div class="habit-today-head">
+            <div class="habit-today-head" onclick="toggleChain(${h.id})" style="cursor:pointer">
                 <div class="habit-emoji" style="background:${h.color}18;border:1px solid ${h.color}30">${h.emoji}</div>
                 <div class="habit-info">
                     <div class="habit-name">${h.name}</div>
                     <div class="habit-meta">${h.type==='count'?`${val}/${h.goal} ${h.unit}`:isDone?'✓ Completado hoy':'Pendiente hoy'}</div>
                 </div>
                 <div class="habit-streak">
+                    ${streakVal>=7?'<div style="font-size:14px;line-height:1;margin-bottom:2px">🔥</div>':''}
                     <div class="streak-num" style="color:${streakVal>0?'var(--yellow)':'var(--dim)'}">${streakVal}</div>
                     <div class="streak-label">racha</div>
                 </div>
@@ -678,6 +683,19 @@ function renderToday(){
                 </div>
             </div>
             <div class="streak-dots">${dots}</div>
+            <div id="chain-${h.id}" style="display:none;padding:8px 4px 4px;border-top:1px solid rgba(255,255,255,0.04);margin-top:6px">
+                <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Últimos 30 días · toca para ocultar</div>
+                <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px">${
+                    Array.from({length:30},(_,i)=>{
+                        const dStr=getStr(new Date(Date.now()-((29-i)*86400000)));
+                        const v=getLog(dStr,h.id);
+                        const filled=h.type==='bool'?!!v:v>=(h.goal||1);
+                        const partial=!filled&&v>0;
+                        const isToday2=i===29;
+                        return '<div title="'+dStr+'" style="aspect-ratio:1;border-radius:4px;background:'+(filled?h.color:partial?h.color+'44':isToday2?h.color+'22':'rgba(255,255,255,0.05)')+'"></div>';
+                    }).join('')
+                }</div>
+            </div>
         </div>`;
     }).join('');
 }
@@ -878,6 +896,40 @@ renderManage();
     setTimeout(()=>{splash.classList.add('hide');setTimeout(()=>{splash.style.display='none';},500);
         sessionStorage.setItem('lifeos_splash','1');},1600);
 })();
+
+function toggleChain(id) {
+    const el = document.getElementById('chain-' + id);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function renderWeeklyStrip() {
+    const el = document.getElementById('weekly-strip');
+    if (!el) return;
+    const DOW_MINI = ['D','L','M','X','J','V','S'];
+    el.innerHTML = Array.from({length:7}, (_,i) => {
+        const d    = new Date(Date.now() - ((6-i)*86400000));
+        const dStr = getStr(d);
+        const isToday2 = i === 6;
+        const dayHabits = dbHabits.filter(h => habitActiveToday(h));
+        let done = 0;
+        dayHabits.forEach(h => {
+            const val = getLog(dStr, h.id);
+            if (h.type==='bool' && val) done++;
+            else if (h.type==='count' && val >= h.goal) done++;
+        });
+        const pct   = dayHabits.length ? done / dayHabits.length : 0;
+        const color = pct >= 1 ? '#52b788' : pct >= 0.5 ? '#c9a84c' : pct > 0 ? '#5b8af0' : 'rgba(255,255,255,0.05)';
+        const border = isToday2 ? '2px solid rgba(255,255,255,0.25)' : '1px solid rgba(255,255,255,0.06)';
+        return `<div style="flex:1;text-align:center;min-width:0">
+            <div style="font-size:9px;font-weight:600;color:${isToday2?'var(--text)':'var(--dim)'};margin-bottom:4px;text-transform:uppercase">${DOW_MINI[d.getDay()]}</div>
+            <div style="aspect-ratio:1;border-radius:8px;background:${color};border:${border};
+                display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.85)">
+                ${dayHabits.length ? (pct>=1 ? '✓' : done>0 ? done : '') : ''}
+            </div>
+            <div style="font-size:9px;color:var(--dim);margin-top:3px">${d.getDate()}</div>
+        </div>`;
+    }).join('');
+}
 </script>
 
 
