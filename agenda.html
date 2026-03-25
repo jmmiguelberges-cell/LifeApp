@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="lifeos.css">
+    <script src="supabase.js"></script>
     <style>
         :root {
             --bg:    #111318;
@@ -484,9 +485,8 @@
     <div class="page-title">Planificación</div>
     <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('month',this)">Mes</button>
-        <button class="tab-btn" onclick="switchTab('week',this)">Semana</button>
+        <button class="tab-btn" onclick="switchTab('tasks',this)">Tareas</button>
         <button class="tab-btn" onclick="switchTab('day',this)">Día</button>
-        <button class="tab-btn" onclick="switchTab('pending',this)" id="tab-pending-btn">Pendientes</button>
         <button class="tab-btn" onclick="switchTab('shifts',this)">Turnos</button>
     </div>
 </div>
@@ -510,26 +510,63 @@
     </div>
 
     <!-- SEMANA -->
-    <div id="view-week" class="view s1">
-        <div class="week-form">
-            <div class="form-label">Nueva tarea fija</div>
-            <select id="rec-day" class="inp">
-                <option value="1">Lunes</option><option value="2">Martes</option>
-                <option value="3">Miércoles</option><option value="4">Jueves</option>
-                <option value="5">Viernes</option><option value="6">Sábado</option>
-                <option value="0">Domingo</option>
-            </select>
-            <input type="text" id="rec-task" class="inp" placeholder="Descripción de la tarea...">
-            <select id="rec-color" class="inp">
-                <option value="blue">Azul — Normal</option>
-                <option value="red">Rojo — Urgente</option>
-                <option value="yellow">Amarillo — Estudio</option>
-                <option value="purple">Morado — Físico</option>
-                <option value="green">Verde — Finanzas</option>
-            </select>
-            <button class="btn-primary" onclick="addRecurring()">Añadir tarea fija</button>
+    <div id="view-tasks" class="view s1">
+        <!-- Sub-tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:14px">
+            <button onclick="switchTaskTab('weekly')" id="ttab-weekly"
+                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+                background:rgba(91,138,240,0.15);color:var(--acc);border:1px solid rgba(91,138,240,0.3);
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">📅 Semanales</button>
+            <button onclick="switchTaskTab('pending')" id="ttab-pending"
+                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+                background:transparent;color:var(--dim);border:1px solid var(--border);
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">📋 Pendientes</button>
         </div>
-        <div id="week-list"></div>
+
+        <!-- SEMANALES -->
+        <div id="tasks-view-weekly">
+            <div class="week-form">
+                <div class="form-label">Nueva tarea fija semanal</div>
+                <select id="rec-day" class="inp">
+                    <option value="1">Lunes</option><option value="2">Martes</option>
+                    <option value="3">Miércoles</option><option value="4">Jueves</option>
+                    <option value="5">Viernes</option><option value="6">Sábado</option>
+                    <option value="0">Domingo</option>
+                </select>
+                <input type="text" id="rec-task" class="inp" placeholder="Descripción de la tarea...">
+                <select id="rec-color" class="inp">
+                    <option value="blue">Azul — Normal</option>
+                    <option value="red">Rojo — Urgente</option>
+                    <option value="yellow">Amarillo — Estudio</option>
+                    <option value="purple">Morado — Físico</option>
+                    <option value="green">Verde — Finanzas</option>
+                </select>
+                <button class="btn-primary" onclick="addRecurring()">Añadir tarea fija</button>
+            </div>
+            <div id="week-list"></div>
+        </div>
+
+        <!-- PENDIENTES -->
+        <div id="tasks-view-pending" style="display:none">
+            <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.5">
+                Tareas sin fecha. Pásalas al calendario cuando lo decidas.
+            </div>
+            <div class="task-form" style="margin-bottom:12px">
+                <div class="inp-row">
+                    <input class="inp" id="pend-text" type="text" placeholder="Nueva tarea pendiente...">
+                    <select class="inp" id="pend-color" style="flex:0 0 58px;font-size:16px;text-align:center">
+                        <option value="blue">🔵</option>
+                        <option value="yellow">🟡</option>
+                        <option value="red">🔴</option>
+                        <option value="green">🟢</option>
+                        <option value="purple">🟣</option>
+                    </select>
+                </div>
+                <input class="inp" id="pend-note" type="text" placeholder="Nota opcional...">
+                <button class="btn-primary" onclick="addPendingTask()">+ Añadir pendiente</button>
+            </div>
+            <div id="pending-list"></div>
+        </div>
     </div>
 
     <!-- DÍA -->
@@ -591,11 +628,6 @@
 
 
     <!-- PENDIENTES -->
-    <div id="view-pending" class="view s1">
-        <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.5">
-            Tareas sin fecha asignada. Cuando decidas el día, pásalas al calendario.
-        </div>
-
         <!-- Add pending task -->
         <div class="task-form" style="margin-bottom:12px">
             <div class="inp-row">
@@ -763,6 +795,26 @@ function getStr(d) {
     if (changed) localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
 })();
 
+
+function switchTaskTab(tab) {
+    ['weekly','pending'].forEach(t => {
+        const v = document.getElementById('tasks-view-' + t);
+        const b = document.getElementById('ttab-' + t);
+        if (v) v.style.display = t === tab ? 'block' : 'none';
+        if (b) {
+            b.style.background  = t === tab ? 'rgba(91,138,240,0.15)' : 'transparent';
+            b.style.color       = t === tab ? 'var(--acc)' : 'var(--dim)';
+            b.style.borderColor = t === tab ? 'rgba(91,138,240,0.3)' : 'var(--border)';
+        }
+    });
+    if (tab === 'weekly')  renderWeek();
+    if (tab === 'pending') renderPending();
+}
+
+function renderTasksView() {
+    switchTaskTab('weekly');
+}
+
 /* ── TABS ── */
 function switchTab(view, el) {
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -770,9 +822,8 @@ function switchTab(view, el) {
     document.getElementById(`view-${view}`).classList.add('active');
     el.classList.add('active');
     if (view==='month')   renderCal();
-    if (view==='week')    renderWeek();
+    if (view==='tasks')   renderTasksView();
     if (view==='day')     renderDay();
-    if (view==='pending') renderPending();
     if (view==='shifts')  renderShiftCal();
 }
 
@@ -1038,10 +1089,30 @@ function addTask() {
     renderDay();
 }
 function toggleTask(idx) {
-    const dStr=getStr(selDay);
-    dbTime[dStr][idx].done=!dbTime[dStr][idx].done;
-    localStorage.setItem('josema_rpg_time_v4',JSON.stringify(dbTime));
+    const dStr = getStr(selDay);
+    const task = dbTime[dStr][idx];
+    task.done  = !task.done;
+    // If overdue task marked done, remove it from today (it's resolved)
+    if (task.done && task.isOverdue) {
+        dbTime[dStr].splice(idx, 1);
+        if (!dbTime[dStr].length) delete dbTime[dStr];
+    }
+    localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
     renderDay();
+}
+
+function sendToPending(idx) {
+    const dStr = getStr(selDay);
+    const task = dbTime[dStr][idx];
+    // Add to pending without date
+    dbPending.push({ text: task.text, color: task.color, note: task.isOverdue ? 'Atrasada de '+task._origDate : '', done: false });
+    localStorage.setItem('lifeos_agenda_pending_v1', JSON.stringify(dbPending));
+    // Remove from today
+    dbTime[dStr].splice(idx, 1);
+    if (!dbTime[dStr].length) delete dbTime[dStr];
+    localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
+    renderDay();
+    toast('✓ Movida a Pendientes');
 }
 function delTask(idx) {
     const dStr=getStr(selDay);
@@ -1133,8 +1204,7 @@ function confirmMovePending(id) {
 function renderPending() {
     // Update tab badge
     const pendingOpen = dbPending.filter(t=>!t.done).length;
-    const tabBtn = document.getElementById('tab-pending-btn');
-    if (tabBtn) tabBtn.textContent = pendingOpen > 0 ? `Pendientes (${pendingOpen})` : 'Pendientes';
+    // pending count removed from tab
     
     const el = document.getElementById('pending-list');
     if (!el) return;
