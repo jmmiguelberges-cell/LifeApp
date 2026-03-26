@@ -485,7 +485,7 @@
     <div class="page-title">Planificación</div>
     <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('month',this)">Mes</button>
-        <button class="tab-btn" onclick="switchTab('tasks',this)">Tareas</button>
+        <button class="tab-btn" onclick="switchTab('tasks',this)">Planificación</button>
         <button class="tab-btn" onclick="switchTab('day',this)">Día</button>
         <button class="tab-btn" onclick="switchTab('shifts',this)">Turnos</button>
     </div>
@@ -507,69 +507,128 @@
             <div class="dow-cell">D</div>
         </div>
         <div id="cal-grid" class="cal-grid"></div>
+
+        <!-- Today's tasks below calendar -->
+        <div style="margin-top:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div class="sec-label" style="margin-bottom:0" id="today-tasks-label">Tareas de hoy</div>
+                <button onclick="switchTab('day', document.querySelector('.tab-btn:nth-child(3)'))"
+                    style="font-size:11px;font-weight:600;color:var(--sub);background:none;border:none;
+                    font-family:'DM Sans',sans-serif;cursor:pointer">Ver día completo →</button>
+            </div>
+            <div id="month-today-tasks"></div>
+        </div>
     </div>
 
     <!-- SEMANA -->
     <div id="view-tasks" class="view s1">
         <!-- Sub-tabs -->
         <div style="display:flex;gap:6px;margin-bottom:14px">
-            <button onclick="switchTaskTab('weekly')" id="ttab-weekly"
+            <button onclick="switchPlanTab('tareas')" id="plantab-tareas"
                 style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
                 background:rgba(91,138,240,0.15);color:var(--acc);border:1px solid rgba(91,138,240,0.3);
-                font-family:'DM Sans',sans-serif;transition:all 0.15s">📅 Semanales</button>
-            <button onclick="switchTaskTab('pending')" id="ttab-pending"
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">✅ Tareas</button>
+            <button onclick="switchPlanTab('planes')" id="plantab-planes"
                 style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
                 background:transparent;color:var(--dim);border:1px solid var(--border);
-                font-family:'DM Sans',sans-serif;transition:all 0.15s">📋 Pendientes</button>
+                font-family:'DM Sans',sans-serif;transition:all 0.15s">🗺 Planes</button>
         </div>
 
-        <!-- SEMANALES -->
-        <div id="tasks-view-weekly">
-            <div class="week-form">
-                <div class="form-label">Nueva tarea fija semanal</div>
-                <select id="rec-day" class="inp">
-                    <option value="1">Lunes</option><option value="2">Martes</option>
-                    <option value="3">Miércoles</option><option value="4">Jueves</option>
-                    <option value="5">Viernes</option><option value="6">Sábado</option>
-                    <option value="0">Domingo</option>
-                </select>
-                <input type="text" id="rec-task" class="inp" placeholder="Descripción de la tarea...">
-                <select id="rec-color" class="inp">
-                    <option value="blue">Azul — Normal</option>
-                    <option value="red">Rojo — Urgente</option>
-                    <option value="yellow">Amarillo — Estudio</option>
-                    <option value="purple">Morado — Físico</option>
-                    <option value="green">Verde — Finanzas</option>
-                </select>
-                <button class="btn-primary" onclick="addRecurring()">Añadir tarea fija</button>
-            </div>
-            <div id="week-list"></div>
-        </div>
-
-        <!-- PENDIENTES -->
-        <div id="tasks-view-pending" style="display:none">
-            <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.5">
-                Tareas sin fecha. Pásalas al calendario cuando lo decidas.
-            </div>
-            <div class="task-form" style="margin-bottom:12px">
-                <div class="inp-row">
-                    <input class="inp" id="pend-text" type="text" placeholder="Nueva tarea pendiente...">
-                    <select class="inp" id="pend-color" style="flex:0 0 58px;font-size:16px;text-align:center">
-                        <option value="blue">🔵</option>
-                        <option value="yellow">🟡</option>
-                        <option value="red">🔴</option>
-                        <option value="green">🟢</option>
-                        <option value="purple">🟣</option>
+        <!-- ── TAREAS ── -->
+        <div id="plan-view-tareas">
+            <!-- Add task form -->
+            <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+                <div class="sec-label" style="margin-bottom:12px">Nueva tarea</div>
+                <input class="inp" id="task-text" type="text" placeholder="¿Qué tienes que hacer?">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                    <input class="inp" id="task-date" type="date" style="margin-bottom:0;font-size:13px">
+                    <select class="inp" id="task-color" style="margin-bottom:0">
+                        <option value="blue">🔵 Normal</option>
+                        <option value="red">🔴 Urgente</option>
+                        <option value="yellow">🟡 Estudio</option>
+                        <option value="purple">🟣 Físico</option>
+                        <option value="green">🟢 Otro</option>
                     </select>
                 </div>
-                <input class="inp" id="pend-note" type="text" placeholder="Nota opcional...">
-                <button class="btn-primary" onclick="addPendingTask()">+ Añadir pendiente</button>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="addTaskFromPlanning(true)" class="btn-ghost" style="width:100%;font-size:13px">
+                        📋 Dejar pendiente
+                    </button>
+                    <button onclick="addTaskFromPlanning(false)" class="btn-primary" style="font-size:13px">
+                        📅 Añadir al día
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pending tasks list -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div class="sec-label" style="margin-bottom:0">Pendientes</div>
+                <div id="pending-count" style="font-size:11px;color:var(--dim)"></div>
             </div>
             <div id="pending-list"></div>
         </div>
+
+        <!-- ── PLANES ── -->
+        <div id="plan-view-planes" style="display:none">
+            <!-- Sub sub-tabs -->
+            <div style="display:flex;gap:6px;margin-bottom:12px">
+                <button onclick="switchPlanSubTab('viajes')" id="psub-viajes"
+                    style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;
+                    background:rgba(82,183,136,0.15);color:var(--green);border:1px solid rgba(82,183,136,0.3);
+                    font-family:'DM Sans',sans-serif;transition:all 0.15s">✈️ Viajes</button>
+                <button onclick="switchPlanSubTab('actividades')" id="psub-actividades"
+                    style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;
+                    background:transparent;color:var(--dim);border:1px solid var(--border);
+                    font-family:'DM Sans',sans-serif;transition:all 0.15s">🎯 Actividades</button>
+            </div>
+
+            <!-- VIAJES -->
+            <div id="plan-view-viajes">
+                <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+                    <div class="sec-label" style="margin-bottom:10px">Añadir idea de viaje</div>
+                    <input class="inp" id="viaje-name" type="text" placeholder="Destino o escapada (ej: Pirineos, Roma...)">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                        <input class="inp" id="viaje-when" type="text" placeholder="Cuándo (ej: verano 26)" style="margin-bottom:0">
+                        <select class="inp" id="viaje-type" style="margin-bottom:0">
+                            <option value="city">🏙 Ciudad</option>
+                            <option value="nature">🏔 Naturaleza</option>
+                            <option value="beach">🏖 Playa</option>
+                            <option value="culture">🏛 Cultura</option>
+                            <option value="gastro">🍽 Gastronómico</option>
+                            <option value="adventure">🧗 Aventura</option>
+                        </select>
+                    </div>
+                    <input class="inp" id="viaje-note" type="text" placeholder="Nota (quién lo recomendó, qué ver...)">
+                    <button class="btn-primary" onclick="addViaje()">+ Añadir viaje</button>
+                </div>
+                <div id="viajes-list"></div>
+            </div>
+
+            <!-- ACTIVIDADES -->
+            <div id="plan-view-actividades" style="display:none">
+                <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
+                    <div class="sec-label" style="margin-bottom:10px">Añadir actividad</div>
+                    <input class="inp" id="act-name" type="text" placeholder="Actividad (ej: Escalada, Concierto...)">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                        <input class="inp" id="act-when" type="text" placeholder="Cuándo (opcional)" style="margin-bottom:0">
+                        <select class="inp" id="act-cat" style="margin-bottom:0">
+                            <option value="sport">🏃 Deporte</option>
+                            <option value="culture">🎭 Cultura</option>
+                            <option value="food">🍽 Gastronomía</option>
+                            <option value="music">🎵 Música</option>
+                            <option value="learn">📚 Aprendizaje</option>
+                            <option value="social">👥 Social</option>
+                            <option value="other">✨ Otro</option>
+                        </select>
+                    </div>
+                    <input class="inp" id="act-note" type="text" placeholder="Nota (dónde, con quién...)">
+                    <button class="btn-primary" onclick="addActividad()">+ Añadir actividad</button>
+                </div>
+                <div id="actividades-list"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- DÍA -->
     <div id="view-day" class="view s1">
         <!-- Nav -->
         <div class="day-nav">
@@ -626,26 +685,6 @@
         <div class="timeline-wrap" id="timeline-wrap"></div>
     </div>
 
-
-    <!-- PENDIENTES -->
-        <!-- Add pending task -->
-        <div class="task-form" style="margin-bottom:12px">
-            <div class="inp-row">
-                <input class="inp" id="pend-text" type="text" placeholder="Tarea pendiente...">
-                <select class="inp" id="pend-color" style="flex:0 0 58px;font-size:16px;text-align:center">
-                    <option value="blue">🔵</option>
-                    <option value="yellow">🟡</option>
-                    <option value="red">🔴</option>
-                    <option value="green">🟢</option>
-                    <option value="purple">🟣</option>
-                </select>
-            </div>
-            <input class="inp" id="pend-note" type="text" placeholder="Nota opcional...">
-            <button class="btn-primary" onclick="addPendingTask()">+ Añadir pendiente</button>
-        </div>
-
-        <div id="pending-list"></div>
-    </div>
 
     <!-- TURNOS -->
     <div id="view-shifts" class="view s1">
@@ -812,7 +851,7 @@ function switchTaskTab(tab) {
 }
 
 function renderTasksView() {
-    switchTaskTab('weekly');
+    switchPlanTab('tareas');
 }
 
 /* ── TABS ── */
@@ -822,7 +861,7 @@ function switchTab(view, el) {
     document.getElementById(`view-${view}`).classList.add('active');
     el.classList.add('active');
     if (view==='month')   renderCal();
-    if (view==='tasks')   renderTasksView();
+    if (view==='tasks')   { renderTasksView(); renderMonthTodayTasks(); }
     if (view==='day')     renderDay();
     if (view==='shifts')  renderShiftCal();
 }
@@ -1365,6 +1404,240 @@ renderCal();
         sessionStorage.setItem('lifeos_splash', '1');
     }, 1600);
 })();
+
+
+/* ── MES: tareas de hoy ── */
+function renderMonthTodayTasks() {
+    const el = document.getElementById('month-today-tasks');
+    if (!el) return;
+    const ts    = getStr(realToday);
+    const tasks = (dbTime[ts] || []).slice().sort((a,b) => {
+        if (!a.time && !b.time) return 0;
+        if (!a.time) return 1; if (!b.time) return -1;
+        return a.time.localeCompare(b.time);
+    });
+    if (!tasks.length) {
+        el.innerHTML = '<div style="text-align:center;padding:16px;font-size:13px;color:var(--dim)">Sin tareas hoy. Toca un día del calendario para añadir.</div>';
+        return;
+    }
+    el.innerHTML = '<div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden">' +
+    tasks.map((t, idx) => {
+        const col = COLOR_HEX[t.color] || COLOR_HEX.blue;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+            border-bottom:1px solid rgba(255,255,255,0.04);
+            background:${t.done ? 'rgba(82,183,136,0.04)' : 'transparent'}">
+            <div style="width:4px;height:36px;border-radius:2px;background:${col};flex-shrink:0"></div>
+            <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:${t.done?'400':'600'};
+                    color:${t.done?'var(--dim)':'var(--text)'};
+                    text-decoration:${t.done?'line-through':'none'};
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.text}</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:1px">
+                    ${t.time ? '🕒 '+t.time+' · ' : ''}${t.isOverdue ? '↩ Atrasada' : t.done ? '✓ Completada' : 'Pendiente'}
+                </div>
+            </div>
+            <div style="display:flex;gap:5px;flex-shrink:0">
+                <button onclick="toggleTaskToday(${idx})"
+                    style="width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:13px;
+                    background:${t.done?'rgba(82,183,136,0.12)':'rgba(255,255,255,0.05)'};
+                    border:1px solid ${t.done?'rgba(82,183,136,0.3)':'rgba(255,255,255,0.1)'};
+                    color:${t.done?'var(--green)':'var(--dim)'}">
+                    ${t.done?'✓':'○'}
+                </button>
+                <button onclick="moveTodayTaskToDay(${idx})"
+                    title="Cambiar día"
+                    style="width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px;
+                    background:rgba(91,138,240,0.08);border:1px solid rgba(91,138,240,0.15);
+                    color:var(--acc)">📅</button>
+            </div>
+        </div>`;
+    }).join('') + '</div>';
+}
+
+function toggleTaskToday(idx) {
+    const ts = getStr(realToday);
+    if (!dbTime[ts] || !dbTime[ts][idx]) return;
+    dbTime[ts][idx].done = !dbTime[ts][idx].done;
+    // Don't delete — keep as historical (crossed out)
+    localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
+    renderMonthTodayTasks();
+}
+
+function moveTodayTaskToDay(idx) {
+    const ts   = getStr(realToday);
+    const task = dbTime[ts]?.[idx];
+    if (!task) return;
+    const newDate = prompt('¿A qué día moverla? (YYYY-MM-DD)', ts);
+    if (!newDate || newDate === ts) return;
+    if (!dbTime[newDate]) dbTime[newDate] = [];
+    dbTime[newDate].push({...task, isOverdue: false});
+    dbTime[ts].splice(idx, 1);
+    if (!dbTime[ts].length) delete dbTime[ts];
+    localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
+    renderMonthTodayTasks();
+    toast('✓ Tarea movida al ' + newDate);
+}
+
+/* ── PLANIFICACIÓN: tab & sub-tabs ── */
+function switchPlanTab(tab) {
+    ['tareas','planes'].forEach(t => {
+        const v = document.getElementById('plan-view-' + t);
+        const b = document.getElementById('plantab-' + t);
+        if (v) v.style.display = t === tab ? 'block' : 'none';
+        if (b) {
+            b.style.background  = t === tab ? 'rgba(91,138,240,0.15)' : 'transparent';
+            b.style.color       = t === tab ? 'var(--acc)' : 'var(--dim)';
+            b.style.borderColor = t === tab ? 'rgba(91,138,240,0.3)' : 'var(--border)';
+        }
+    });
+    if (tab === 'tareas') renderPending();
+}
+
+function switchPlanSubTab(sub) {
+    ['viajes','actividades'].forEach(t => {
+        const v = document.getElementById('plan-view-' + t);
+        const b = document.getElementById('psub-' + t);
+        if (v) v.style.display = t === sub ? 'block' : 'none';
+        if (b) {
+            b.style.background  = t === sub ? 'rgba(82,183,136,0.15)' : 'transparent';
+            b.style.color       = t === sub ? 'var(--green)' : 'var(--dim)';
+            b.style.borderColor = t === sub ? 'rgba(82,183,136,0.3)' : 'var(--border)';
+        }
+    });
+    if (sub === 'viajes')      renderViajes();
+    if (sub === 'actividades') renderActividades();
+}
+
+function addTaskFromPlanning(asPending) {
+    const text  = document.getElementById('task-text').value.trim();
+    const date  = document.getElementById('task-date').value;
+    const color = document.getElementById('task-color').value;
+    if (!text) { toast('Escribe una tarea'); return; }
+    if (asPending) {
+        dbPending.push({ text, color, note: '', done: false });
+        localStorage.setItem('lifeos_agenda_pending_v1', JSON.stringify(dbPending));
+        renderPending();
+        toast('✓ Añadida a pendientes');
+    } else {
+        const d = date || getStr(realToday);
+        if (!dbTime[d]) dbTime[d] = [];
+        dbTime[d].push({ text, color, time: '', done: false, subtasks: [], isOverdue: false });
+        localStorage.setItem('josema_rpg_time_v4', JSON.stringify(dbTime));
+        toast('✓ Añadida al ' + d);
+    }
+    document.getElementById('task-text').value = '';
+    document.getElementById('task-date').value = '';
+}
+
+/* ── VIAJES ── */
+const K_VIAJES = 'lifeos_agenda_viajes_v1';
+let dbViajes = JSON.parse(localStorage.getItem(K_VIAJES)) || [];
+function saveViajes() { localStorage.setItem(K_VIAJES, JSON.stringify(dbViajes)); }
+
+const VIAJE_TYPE = { city:'🏙', nature:'🏔', beach:'🏖', culture:'🏛', gastro:'🍽', adventure:'🧗' };
+
+function addViaje() {
+    const name = document.getElementById('viaje-name').value.trim();
+    if (!name) { toast('Escribe el destino'); return; }
+    dbViajes.push({
+        name,
+        when: document.getElementById('viaje-when').value.trim(),
+        type: document.getElementById('viaje-type').value,
+        note: document.getElementById('viaje-note').value.trim(),
+        done: false,
+        createdAt: getStr(realToday),
+    });
+    saveViajes();
+    ['viaje-name','viaje-when','viaje-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    renderViajes();
+    toast('✓ Viaje añadido');
+}
+
+function renderViajes() {
+    const el = document.getElementById('viajes-list');
+    if (!el) return;
+    if (!dbViajes.length) {
+        el.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:var(--dim)">Sin ideas de viaje. Añade la primera.</div>';
+        return;
+    }
+    el.innerHTML = dbViajes.map((v, i) => `
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:8px;
+            opacity:${v.done?'0.5':'1'}">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+                <div style="font-size:24px;flex-shrink:0">${VIAJE_TYPE[v.type]||'✈️'}</div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:600;color:var(--text);text-decoration:${v.done?'line-through':'none'}">${v.name}</div>
+                    ${v.when ? `<div style="font-size:12px;color:var(--acc);margin-top:2px">📅 ${v.when}</div>` : ''}
+                    ${v.note ? `<div style="font-size:12px;color:var(--sub);margin-top:4px;font-style:italic">${v.note}</div>` : ''}
+                </div>
+                <div style="display:flex;gap:4px;flex-shrink:0">
+                    <button onclick="dbViajes[${i}].done=!dbViajes[${i}].done;saveViajes();renderViajes()"
+                        style="width:28px;height:28px;border-radius:7px;background:rgba(82,183,136,0.1);
+                        color:var(--green);border:1px solid rgba(82,183,136,0.2);font-size:13px;cursor:pointer">
+                        ${v.done?'↩':'✓'}
+                    </button>
+                    <button onclick="dbViajes.splice(${i},1);saveViajes();renderViajes()"
+                        style="width:28px;height:28px;border-radius:7px;background:rgba(224,95,95,0.06);
+                        color:var(--red);border:1px solid rgba(224,95,95,0.12);font-size:12px;cursor:pointer">✕</button>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+/* ── ACTIVIDADES ── */
+const K_ACTS = 'lifeos_agenda_acts_v1';
+let dbActs = JSON.parse(localStorage.getItem(K_ACTS)) || [];
+function saveActs() { localStorage.setItem(K_ACTS, JSON.stringify(dbActs)); }
+
+const ACT_CAT = { sport:'🏃', culture:'🎭', food:'🍽', music:'🎵', learn:'📚', social:'👥', other:'✨' };
+
+function addActividad() {
+    const name = document.getElementById('act-name').value.trim();
+    if (!name) { toast('Escribe la actividad'); return; }
+    dbActs.push({
+        name,
+        when: document.getElementById('act-when').value.trim(),
+        cat:  document.getElementById('act-cat').value,
+        note: document.getElementById('act-note').value.trim(),
+        done: false,
+        createdAt: getStr(realToday),
+    });
+    saveActs();
+    ['act-name','act-when','act-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    renderActividades();
+    toast('✓ Actividad añadida');
+}
+
+function renderActividades() {
+    const el = document.getElementById('actividades-list');
+    if (!el) return;
+    if (!dbActs.length) {
+        el.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:var(--dim)">Sin actividades. Añade la primera.</div>';
+        return;
+    }
+    el.innerHTML = dbActs.map((a, i) => `
+        <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:8px;
+            opacity:${a.done?'0.5':'1'}">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+                <div style="font-size:24px;flex-shrink:0">${ACT_CAT[a.cat]||'✨'}</div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:600;color:var(--text);text-decoration:${a.done?'line-through':'none'}">${a.name}</div>
+                    ${a.when ? `<div style="font-size:12px;color:var(--yellow);margin-top:2px">📅 ${a.when}</div>` : ''}
+                    ${a.note ? `<div style="font-size:12px;color:var(--sub);margin-top:4px;font-style:italic">${a.note}</div>` : ''}
+                </div>
+                <div style="display:flex;gap:4px;flex-shrink:0">
+                    <button onclick="dbActs[${i}].done=!dbActs[${i}].done;saveActs();renderActividades()"
+                        style="width:28px;height:28px;border-radius:7px;background:rgba(82,183,136,0.1);
+                        color:var(--green);border:1px solid rgba(82,183,136,0.2);font-size:13px;cursor:pointer">
+                        ${a.done?'↩':'✓'}
+                    </button>
+                    <button onclick="dbActs.splice(${i},1);saveActs();renderActividades()"
+                        style="width:28px;height:28px;border-radius:7px;background:rgba(224,95,95,0.06);
+                        color:var(--red);border:1px solid rgba(224,95,95,0.12);font-size:12px;cursor:pointer">✕</button>
+                </div>
+            </div>
+        </div>`).join('');
+}
 
 </script>
 
