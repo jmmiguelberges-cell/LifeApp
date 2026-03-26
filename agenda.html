@@ -63,12 +63,13 @@
         .tab-bar {
             display:flex; gap:0;
             overflow-x:auto;
+            -webkit-overflow-scrolling:touch;
             background:transparent;
         }
         .tab-bar::-webkit-scrollbar { display:none; }
         .tab-btn {
-            flex:1; min-width:0;
-            padding:10px 4px 10px;
+            flex:0 0 auto;
+            padding:10px 16px 10px;
             font-family:'DM Sans',sans-serif;
             font-size:13px; font-weight:500;
             color:var(--dim);

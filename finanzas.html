@@ -51,10 +51,10 @@
             font-family:'DM Serif Display',serif;
             font-size:26px; font-weight:400; color:var(--text); line-height:1.15; margin-bottom:14px;
         }
-        .tab-bar { display:flex; }
+        .tab-bar { display:flex; overflow-x:auto; -webkit-overflow-scrolling:touch; }
         .tab-bar::-webkit-scrollbar { display:none; }
         .tab-btn {
-            flex:1; padding:10px 4px;
+            flex:0 0 auto; padding:10px 14px;
             font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
             color:var(--dim); border-bottom:2px solid transparent;
             text-align:center; cursor:pointer;
@@ -562,7 +562,7 @@
     <div id="view-patrimonio" class="view s1">
 
         <!-- Sub-menu -->
-        <div style="display:flex;gap:6px;margin-bottom:14px">
+        <div style="display:flex;gap:6px;margin-bottom:14px;overflow:visible">
             <button onclick="switchPatTab('cuentas')" id="ptab-cuentas"
                 style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;
                 background:rgba(201,168,76,0.15);color:var(--yellow);border:1px solid rgba(201,168,76,0.3);

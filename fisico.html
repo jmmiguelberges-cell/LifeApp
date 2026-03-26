@@ -614,13 +614,6 @@
 
     <!-- ═══ HOY ═══ -->
     <div id="view-today" class="view active s1">
-        <!-- Supabase sync status -->
-        <div id="supa-status" style="display:none;padding:8px 16px;font-size:12px;color:var(--green);
-            background:rgba(82,183,136,0.08);border-bottom:1px solid rgba(82,183,136,0.1);
-            display:flex;align-items:center;gap:6px">
-            <div id="supa-status-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
-            <span id="supa-status-text">Sincronizado</span>
-        </div>
         <div class="session-strip">
             <div class="ss-tile t-acc">
                 <div class="ss-num" id="s-kg">0</div>
@@ -1634,29 +1627,6 @@ function finishSession() {
     const notesEl = document.getElementById('session-notes');
     if (notesEl) notesEl.value = '';
     toast(`✓ Sesión guardada — ${Math.round(totalKg)} kg totales`);
-
-    // Sync to Supabase if logged in
-    syncSessionToCloud();
-}
-
-async function syncSessionToCloud() {
-    try {
-        if (!window.LifeOSSupa) return;
-        const user = await LifeOSSupa.getUser();
-        if (!user) return;
-        const ok = await LifeOSSupa.syncSessionsUp(dbSessions.slice(0, 5));
-        const statusEl = document.getElementById('supa-status');
-        const textEl   = document.getElementById('supa-status-text');
-        const dotEl    = document.getElementById('supa-status-dot');
-        if (statusEl) statusEl.style.display = 'flex';
-        if (ok) {
-            if (textEl) textEl.textContent = '☁ Sincronizado con la nube';
-            if (dotEl)  dotEl.style.background = 'var(--green)';
-        } else {
-            if (textEl) textEl.textContent = '⚠ Sin conexión — guardado local';
-            if (dotEl)  dotEl.style.background = 'var(--yellow)';
-        }
-    } catch(e) { console.warn('Sync error:', e); }
 }
 
 /* ════════════════════════════════════════
