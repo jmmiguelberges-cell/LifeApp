@@ -38,7 +38,7 @@
             display:flex; flex-direction:column;
             -webkit-user-select:none; font-size:15px;
         }
-        #sw { flex:1; overflow-y:auto; overflow-x:hidden; padding-bottom:92px; }
+        #sw { flex:1; overflow-y:auto; overflow-x:hidden; padding-bottom:92px; -webkit-overflow-scrolling:touch; }
         #sw::-webkit-scrollbar { display:none; }
 
         /* ── HEADER ── */
@@ -561,7 +561,6 @@
 
     <!-- ═══ PATRIMONIO (cuentas + huchas + pufos) ═══ -->
     <div id="view-patrimonio" class="view s1">
-
         <!-- Sub-menu -->
         <div style="display:flex;gap:6px;margin-bottom:14px;overflow:visible">
             <button onclick="switchPatTab('cuentas')" id="ptab-cuentas"
@@ -579,7 +578,7 @@
         </div>
 
         <!-- ── CUENTAS ── -->
-        <div id="pat-view-cuentas">
+        <div id="pat-view-cuentas" style="display:none">
             <!-- Patrimonio neto hero -->
             <div style="background:linear-gradient(145deg,#191c22,#1a1f2c);border:1px solid rgba(91,138,240,0.2);
                 border-radius:20px;padding:20px;margin-bottom:12px;text-align:center">
