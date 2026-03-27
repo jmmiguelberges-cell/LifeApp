@@ -51,11 +51,11 @@
             font-family:'DM Serif Display',serif;
             font-size:26px; font-weight:400; color:var(--text); line-height:1.15; margin-bottom:14px;
         }
-        .tab-bar { display:flex; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        .tab-bar { display:flex; overflow-x:hidden; background:var(--bg); }
         .tab-bar::-webkit-scrollbar { display:none; }
         .tab-btn {
-            flex:0 0 auto; padding:10px 14px;
-            font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+            flex:1; padding:10px 6px;
+            font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600;
             color:var(--dim); border-bottom:2px solid transparent;
             text-align:center; cursor:pointer;
             transition:color 0.2s, border-color 0.2s; white-space:nowrap;
@@ -1470,8 +1470,11 @@ function switchPatTab(tab) {
             const active = t === tab;
             const col = colors[t];
             b.style.background  = active ? col.bg    : 'transparent';
-            b.style.color       = active ? col.color : 'var(--dim)';
-            b.style.borderColor = active ? col.border: 'var(--border)';
+            b.style.color       = active ? col.color : '#4a4d56';
+            b.style.borderColor = active ? col.border: 'rgba(255,255,255,0.07)';
+            b.style.fontFamily  = "'DM Sans',sans-serif";
+            b.style.fontSize    = '12px';
+            b.style.fontWeight  = '700';
         }
     });
     if (tab === 'cuentas') renderCuentas();

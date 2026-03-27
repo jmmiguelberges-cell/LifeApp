@@ -842,9 +842,12 @@ function switchTaskTab(tab) {
         const b = document.getElementById('ttab-' + t);
         if (v) v.style.display = t === tab ? 'block' : 'none';
         if (b) {
-            b.style.background  = t === tab ? 'rgba(91,138,240,0.15)' : 'transparent';
-            b.style.color       = t === tab ? 'var(--acc)' : 'var(--dim)';
-            b.style.borderColor = t === tab ? 'rgba(91,138,240,0.3)' : 'var(--border)';
+            const active = t === tab;
+            b.style.background  = active ? 'rgba(91,138,240,0.15)' : 'transparent';
+            b.style.color       = active ? '#5b8af0' : '#4a4d56';
+            b.style.borderColor = active ? 'rgba(91,138,240,0.3)' : 'rgba(255,255,255,0.07)';
+            b.style.fontFamily  = "'DM Sans',sans-serif";
+            b.style.fontWeight  = '700';
         }
     });
     if (tab === 'weekly')  renderWeek();
@@ -1486,9 +1489,12 @@ function switchPlanTab(tab) {
         const b = document.getElementById('plantab-' + t);
         if (v) v.style.display = t === tab ? 'block' : 'none';
         if (b) {
-            b.style.background  = t === tab ? 'rgba(91,138,240,0.15)' : 'transparent';
-            b.style.color       = t === tab ? 'var(--acc)' : 'var(--dim)';
-            b.style.borderColor = t === tab ? 'rgba(91,138,240,0.3)' : 'var(--border)';
+            const active = t === tab;
+            b.style.background  = active ? 'rgba(91,138,240,0.15)' : 'transparent';
+            b.style.color       = active ? '#5b8af0' : '#4a4d56';
+            b.style.borderColor = active ? 'rgba(91,138,240,0.3)' : 'rgba(255,255,255,0.07)';
+            b.style.fontFamily  = "'DM Sans',sans-serif";
+            b.style.fontWeight  = '700';
         }
     });
     if (tab === 'tareas') renderPending();
@@ -1500,9 +1506,12 @@ function switchPlanSubTab(sub) {
         const b = document.getElementById('psub-' + t);
         if (v) v.style.display = t === sub ? 'block' : 'none';
         if (b) {
-            b.style.background  = t === sub ? 'rgba(82,183,136,0.15)' : 'transparent';
-            b.style.color       = t === sub ? 'var(--green)' : 'var(--dim)';
-            b.style.borderColor = t === sub ? 'rgba(82,183,136,0.3)' : 'var(--border)';
+            const active = t === sub;
+            b.style.background  = active ? 'rgba(82,183,136,0.15)' : 'transparent';
+            b.style.color       = active ? '#52b788' : '#4a4d56';
+            b.style.borderColor = active ? 'rgba(82,183,136,0.3)' : 'rgba(255,255,255,0.07)';
+            b.style.fontFamily  = "'DM Sans',sans-serif";
+            b.style.fontWeight  = '700';
         }
     });
     if (sub === 'viajes')      renderViajes();
