@@ -65,6 +65,7 @@
             overflow-x:auto;
             -webkit-overflow-scrolling:touch;
             background:transparent;
+            justify-content:center;
         }
         .tab-bar::-webkit-scrollbar { display:none; }
         .tab-btn {
@@ -316,6 +317,14 @@
         select.inp { cursor:pointer; }
         select.inp option { background:#1f2229; color:#e8e9ee; }
 
+        .btn-ghost {
+            background:rgba(91,138,240,0.1); color:#5b8af0;
+            border:1px solid rgba(91,138,240,0.25); border-radius:12px;
+            padding:12px 16px; font-size:14px; font-weight:600;
+            font-family:'DM Sans',sans-serif; cursor:pointer;
+            width:100%; text-align:center; transition:opacity 0.15s;
+        }
+        .btn-ghost:active { opacity:0.7; }
         .btn-primary {
             width:100%; background:var(--acc);
             color:#fff; font-family:'DM Sans',sans-serif;
