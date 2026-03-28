@@ -38,7 +38,7 @@
             display:flex; flex-direction:column;
             -webkit-user-select:none; font-size:15px;
         }
-        #sw { flex:1; overflow-y:auto; overflow-x:hidden; padding-bottom:92px; -webkit-overflow-scrolling:touch; }
+        #sw { flex:1; overflow-y:auto; overflow-x:hidden; padding-bottom:120px; -webkit-overflow-scrolling:touch; min-height:0; }
         #sw::-webkit-scrollbar { display:none; }
 
         /* ── HEADER ── */
@@ -65,7 +65,7 @@
         .tab-btn.active { color:var(--acc); border-bottom:3px solid var(--acc); padding-bottom:9px; }
 
         /* ── VIEWS ── */
-        .view { display:none; padding:16px; animation:up 0.22s ease both; }
+        .view { display:none; padding:16px; }
         .view.active { display:block; }
         @keyframes up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
@@ -428,7 +428,7 @@
 <div id="sw">
 
     <!-- ═══ RESUMEN ═══ -->
-    <div id="view-summary" class="view active s1">
+    <div id="view-summary" class="view active">
 
         <div class="month-nav">
             <button class="mn-arrow" onclick="changeViewMonth(-1)">‹</button>
@@ -485,7 +485,7 @@
     </div>
 
     <!-- ═══ MOVIMIENTOS ═══ -->
-    <div id="view-moves" class="view s1">
+    <div id="view-moves" class="view">
 
         <!-- Add form -->
         <div class="add-form">
@@ -533,7 +533,7 @@
     </div>
 
     <!-- ═══ ANÁLISIS ═══ -->
-    <div id="view-analysis" class="view s1">
+    <div id="view-analysis" class="view">
 
         <!-- Global stats -->
         <div class="stat-grid" id="analysis-stats"></div>
@@ -560,7 +560,7 @@
 
 
     <!-- ═══ PATRIMONIO (cuentas + huchas + pufos) ═══ -->
-    <div id="view-patrimonio" class="view s1">
+    <div id="view-patrimonio" class="view">
         <!-- Sub-menu -->
         <div style="display:flex;gap:6px;margin-bottom:14px;overflow:visible">
             <button onclick="switchPatTab('cuentas')" id="ptab-cuentas"
@@ -801,6 +801,8 @@ function switchTab(view, el) {
     const viewEl = document.getElementById(`view-${view}`);
     if (viewEl) viewEl.classList.add('active');
     if (el) el.classList.add('active');
+    const sw = document.getElementById('sw');
+    if (sw) sw.scrollTo({top:0, behavior:'instant'});
     if (view==='summary')    renderSummary();
     if (view==='moves')      renderMoves();
     if (view==='analysis')   renderAnalysis();
@@ -1457,6 +1459,7 @@ let currentPatTab = 'cuentas';
 
 function switchPatTab(tab) {
     currentPatTab = tab;
+    const sw = document.getElementById('sw'); if (sw) sw.scrollTo({top:0, behavior:'instant'});
     const colors = {
         cuentas: { bg:'rgba(201,168,76,0.15)', color:'var(--yellow)', border:'rgba(201,168,76,0.3)' },
         huchas:  { bg:'rgba(82,183,136,0.15)', color:'var(--green)',  border:'rgba(82,183,136,0.3)' },
