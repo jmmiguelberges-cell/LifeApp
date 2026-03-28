@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Life OS — Finanzas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -38,7 +39,7 @@
             display:flex; flex-direction:column;
             -webkit-user-select:none; font-size:15px;
         }
-        #sw { flex:1; overflow-y:auto; overflow-x:hidden; padding-bottom:120px; -webkit-overflow-scrolling:touch; min-height:0; }
+        #sw { flex:1; overflow:hidden; min-height:0; }
         #sw::-webkit-scrollbar { display:none; }
 
         /* ── HEADER ── */
@@ -65,8 +66,8 @@
         .tab-btn.active { color:var(--acc); border-bottom:3px solid var(--acc); padding-bottom:9px; }
 
         /* ── VIEWS ── */
-        .view { display:none; padding:16px; }
-        .view.active { display:flex; flex-direction:column; }
+        .view { display:none; }
+        .view.active { display:block; overflow-y:auto; overflow-x:hidden; height:100%; padding:16px; padding-bottom:100px; -webkit-overflow-scrolling:touch; }
         .view.active { display:block; }
         @keyframes up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
@@ -564,23 +565,22 @@
     <div id="view-patrimonio" class="view">
 
     <!-- 3-tab pill selector -->
-    <div id="view-patrimonio" class="view">
-
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px">
+    <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch">
         <button id="pb-cuentas" onclick="showPat('cuentas')"
-            style="padding:10px 4px;border-radius:10px;font-size:12px;font-weight:700;
+            style="flex:0 0 auto;white-space:nowrap;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:700;
             background:rgba(201,168,76,0.15);color:#c9a84c;border:1px solid rgba(201,168,76,0.3);
             font-family:'DM Sans',sans-serif;cursor:pointer">🏦 Cuentas</button>
         <button id="pb-huchas" onclick="showPat('huchas')"
-            style="padding:10px 4px;border-radius:10px;font-size:12px;font-weight:700;
+            style="flex:0 0 auto;white-space:nowrap;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:700;
             background:transparent;color:#4a4d56;border:1px solid rgba(255,255,255,0.07);
             font-family:'DM Sans',sans-serif;cursor:pointer">🎯 Huchas</button>
         <button id="pb-pufos" onclick="showPat('pufos')"
-            style="padding:10px 4px;border-radius:10px;font-size:12px;font-weight:700;
+            style="flex:0 0 auto;white-space:nowrap;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:700;
             background:transparent;color:#4a4d56;border:1px solid rgba(255,255,255,0.07);
             font-family:'DM Sans',sans-serif;cursor:pointer">💸 Pufos</button>
     </div>
 
+    <!-- Content area - single div, content swapped by JS -->
     <div id="pat-content"></div>
 
 </div>
@@ -710,7 +710,6 @@ function switchTab(view, el) {
     if (view==='moves')      renderMoves();
     if (view==='analysis')   renderAnalysis();
     if (view==='patrimonio') renderPatrimonioTab('cuentas');
-    requestAnimationFrame(() => { const sw = document.getElementById('sw'); if (sw) sw.scrollTop = 0; });
 }
 
 /* ══════════════════════════════════════
@@ -1379,9 +1378,6 @@ function showPat(tab) {
     if (tab === 'cuentas') el.innerHTML = renderCuentasHTML();
     if (tab === 'huchas')  el.innerHTML = renderHuchasHTML();
     if (tab === 'pufos')   el.innerHTML = renderPufosHTML();
-    // Scroll to top after render
-    const sw = document.getElementById('sw');
-    if (sw) sw.scrollTop = 0;
 }
 
 function renderPatrimonioTab(tab) { showPat(tab || _curPat); }
@@ -1509,8 +1505,6 @@ function renderPufosHTML() {
     const settled  = dbPufos.filter(p=>p.settled);
     const meDeben  = active.filter(p=>p.dir==='me_debe').reduce((s,p)=>s+p.amount,0);
     const lesDebo  = active.filter(p=>p.dir==='le_debo').reduce((s,p)=>s+p.amount,0);
-    let _pufosFilter = _pufosFilter || 'all';
-
     const listHTML = !active.length
         ? `<div style="text-align:center;padding:20px;font-size:13px;color:#4a4d56">Sin pufos activos.</div>`
         : active.map((p,i)=>`
