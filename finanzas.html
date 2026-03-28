@@ -66,6 +66,7 @@
 
         /* ── VIEWS ── */
         .view { display:none; padding:16px; }
+        .view.active { display:flex; flex-direction:column; }
         .view.active { display:block; }
         @keyframes up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
@@ -561,124 +562,27 @@
 
     <!-- ═══ PATRIMONIO (cuentas + huchas + pufos) ═══ -->
     <div id="view-patrimonio" class="view">
-        <!-- Sub-menu -->
-        <div style="display:flex;gap:6px;margin-bottom:14px;overflow:visible">
-            <button onclick="switchPatTab('cuentas')" id="ptab-cuentas"
-                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;
-                background:rgba(201,168,76,0.15);color:var(--yellow);border:1px solid rgba(201,168,76,0.3);
-                font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">🏦 Cuentas</button>
-            <button onclick="switchPatTab('huchas')" id="ptab-huchas"
-                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;
-                background:transparent;color:var(--dim);border:1px solid var(--border);
-                font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">🎯 Huchas</button>
-            <button onclick="switchPatTab('pufos')" id="ptab-pufos"
-                style="flex:1;padding:9px 4px;border-radius:10px;font-size:12px;font-weight:700;
-                background:transparent;color:var(--dim);border:1px solid var(--border);
-                font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s">💸 Pufos</button>
-        </div>
 
-        <!-- ── CUENTAS ── -->
-        <div id="pat-view-cuentas" style="display:none">
-            <!-- Patrimonio neto hero -->
-            <div style="background:linear-gradient(145deg,#191c22,#1a1f2c);border:1px solid rgba(91,138,240,0.2);
-                border-radius:20px;padding:20px;margin-bottom:12px;text-align:center">
-                <div style="font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Patrimonio neto</div>
-                <div id="net-worth-display" style="font-family:'DM Serif Display',serif;font-size:44px;font-weight:400;line-height:1;color:#5b8af0">0,00 €</div>
-                <div id="net-worth-sub" style="font-size:12px;color:var(--sub);margin-top:6px">Activos − Pasivos</div>
-                <div style="display:flex;justify-content:center;gap:24px;margin-top:14px">
-                    <div style="text-align:center">
-                        <div style="font-size:12px;color:var(--green);font-weight:700" id="total-assets">0 €</div>
-                        <div style="font-size:10px;color:var(--dim);margin-top:2px">Activos</div>
-                    </div>
-                    <div style="width:1px;background:var(--border)"></div>
-                    <div style="text-align:center">
-                        <div style="font-size:12px;color:var(--red);font-weight:700" id="total-liabilities">0 €</div>
-                        <div style="font-size:10px;color:var(--dim);margin-top:2px">Pasivos</div>
-                    </div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                <div class="sec-label" style="margin-bottom:0">Mis cuentas</div>
-                <button onclick="openCuentaForm()"
-                    style="background:rgba(91,138,240,0.1);color:var(--acc);border:1px solid rgba(91,138,240,0.2);
-                    border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;
-                    font-family:'DM Sans',sans-serif;cursor:pointer">+ Añadir cuenta</button>
-            </div>
-            <div id="cuentas-list"></div>
-            <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:12px">
-                <div style="font-size:12px;font-weight:600;color:var(--sub);margin-bottom:12px">Evolución del patrimonio</div>
-                <div style="height:120px"><canvas id="patrimonio-chart"></canvas></div>
-            </div>
-        </div>
-
-        <!-- ── HUCHAS ── -->
-        <div id="pat-view-huchas" style="display:none">
-            <div id="savings-list"></div>
-            <div class="add-form" style="margin-bottom:0">
-                <div class="sec-label" style="margin-bottom:10px">Nueva hucha</div>
-                <div class="row">
-                    <input class="inp" id="h-name"   type="text"   placeholder="Nombre (ej: Viaje a Japón)">
-                    <input class="inp" id="h-emoji"  type="text"   placeholder="🎯" maxlength="2" style="flex:0 0 60px;text-align:center;font-size:20px">
-                </div>
-                <div class="row">
-                    <input class="inp" id="h-goal"    type="number" placeholder="Objetivo €">
-                    <input class="inp" id="h-current" type="number" placeholder="Tengo ya €">
-                </div>
-                <input class="inp" id="h-deadline" type="date" style="font-size:13px;width:100%;box-sizing:border-box">
-                <select class="inp" id="h-color">
-                    <option value="#c9a84c">🟡 Dorado</option>
-                    <option value="#52b788">🟢 Verde</option>
-                    <option value="#5b8af0">🔵 Azul</option>
-                    <option value="#9b7fe0">🟣 Morado</option>
-                    <option value="#e07a5f">🟠 Naranja</option>
-                </select>
-                <button class="btn-primary" onclick="addHucha()">Crear hucha</button>
-            </div>
-        </div>
-
-        <!-- ── PUFOS ── -->
-        <div id="pat-view-pufos" style="display:none">
-            <!-- hero stats -->
-            <div class="stat-grid" style="margin-bottom:12px">
-                <div class="stat-tile"><div class="stat-label">Me deben</div><div class="stat-val inc" id="pufos-me-deben">0€</div></div>
-                <div class="stat-tile"><div class="stat-label">Les debo</div><div class="stat-val exp" id="pufos-les-debo">0€</div></div>
-            </div>
-            <!-- filter -->
-            <div style="display:flex;gap:6px;margin-bottom:12px">
-                <button onclick="setPufosFilter('all')" id="pf-all"
-                    style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
-                    background:rgba(91,138,240,0.15);color:var(--acc);border:1px solid rgba(91,138,240,0.3);
-                    font-family:'DM Sans',sans-serif;transition:all 0.15s">Todos</button>
-                <button onclick="setPufosFilter('me_debe')" id="pf-me"
-                    style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
-                    background:transparent;color:var(--dim);border:1px solid var(--border);
-                    font-family:'DM Sans',sans-serif;transition:all 0.15s">Me deben</button>
-                <button onclick="setPufosFilter('le_debo')" id="pf-ellos"
-                    style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
-                    background:transparent;color:var(--dim);border:1px solid var(--border);
-                    font-family:'DM Sans',sans-serif;transition:all 0.15s">Les debo</button>
-            </div>
-            <div id="pufos-list"></div>
-            <!-- add form -->
-            <div class="sec-label" style="margin-top:12px">Nuevo pufo</div>
-            <div class="add-form" style="margin-bottom:0">
-                <div class="type-toggle">
-                    <button class="type-btn" id="pufo-btn-me"    onclick="setPufoType('me_debe')">Me deben</button>
-                    <button class="type-btn active-inc" id="pufo-btn-ellos" onclick="setPufoType('le_debo')">Les debo</button>
-                </div>
-                <input class="inp" id="pufo-who"    type="text"   placeholder="¿Quién? (nombre)">
-                <input class="inp" id="pufo-amount" type="number" step="0.01" placeholder="Importe €">
-                <input class="inp" id="pufo-reason" type="text"   placeholder="Motivo (opcional)">
-                <input class="inp" id="pufo-date"   type="date"   style="font-size:13px">
-                <button class="btn-primary" onclick="addPufo()">Añadir pufo</button>
-            </div>
-            <div id="pufos-settled-section" style="display:none;margin-top:16px">
-                <div class="sec-label">Historial saldados</div>
-                <div id="pufos-settled-list"></div>
-            </div>
-        </div>
-
+    <!-- 3-tab pill selector -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px">
+        <button id="pb-cuentas" onclick="showPat('cuentas')"
+            style="padding:10px 4px;border-radius:10px;font-size:12px;font-weight:700;
+            background:rgba(201,168,76,0.15);color:#c9a84c;border:1px solid rgba(201,168,76,0.3);
+            font-family:'DM Sans',sans-serif;cursor:pointer">🏦 Cuentas</button>
+        <button id="pb-huchas" onclick="showPat('huchas')"
+            style="padding:10px 4px;border-radius:10px;font-size:12px;font-weight:700;
+            background:transparent;color:#4a4d56;border:1px solid rgba(255,255,255,0.07);
+            font-family:'DM Sans',sans-serif;cursor:pointer">🎯 Huchas</button>
+        <button id="pb-pufos" onclick="showPat('pufos')"
+            style="padding:10px 4px;border-radius:10px;font-size:12px;font-weight:700;
+            background:transparent;color:#4a4d56;border:1px solid rgba(255,255,255,0.07);
+            font-family:'DM Sans',sans-serif;cursor:pointer">💸 Pufos</button>
     </div>
+
+    <!-- Content area - single div, content swapped by JS -->
+    <div id="pat-content"></div>
+
+</div>
 
 <!-- Cuenta modal — fuera del #sw para evitar scroll issues en iOS -->
 <div id="cuenta-modal" onclick="if(event.target===this)closeCuentaModal()" style="display:none;position:fixed;inset:0;
@@ -801,12 +705,11 @@ function switchTab(view, el) {
     const viewEl = document.getElementById(`view-${view}`);
     if (viewEl) viewEl.classList.add('active');
     if (el) el.classList.add('active');
-    const sw = document.getElementById('sw');
-    if (sw) sw.scrollTo({top:0, behavior:'instant'});
     if (view==='summary')    renderSummary();
     if (view==='moves')      renderMoves();
     if (view==='analysis')   renderAnalysis();
     if (view==='patrimonio') renderPatrimonioTab('cuentas');
+    requestAnimationFrame(() => { const sw = document.getElementById('sw'); if (sw) sw.scrollTop = 0; });
 }
 
 /* ══════════════════════════════════════
@@ -1101,7 +1004,7 @@ function addHucha() {
     document.getElementById('h-current').value = '';
     document.getElementById('h-emoji').value   = '';
     document.getElementById('h-deadline').value= '';
-    renderSavings();
+    showPat('huchas');
     toast(`✓ Hucha "${name}" creada`);
 }
 
@@ -1118,7 +1021,7 @@ function aportarHucha(i) {
 function deleteHucha(i) {
     dbHuchas.splice(i, 1);
     saveHuchas();
-    renderSavings();
+    showPat('huchas');
     toast('Hucha eliminada');
 }
 
@@ -1281,18 +1184,14 @@ function setPufosFilter(f) {
 }
 
 function addPufo() {
-    const person  = document.getElementById('pufo-person').value.trim();
-    const amount  = parseFloat(document.getElementById('pufo-amount').value);
-    const dir     = document.getElementById('pufo-dir').value;
-    const concept = document.getElementById('pufo-concept').value.trim();
-    const date    = document.getElementById('pufo-date').value || todayISO();
-    if (!person || !amount || amount <= 0) { toast('Introduce persona e importe'); return; }
-    dbPufos.push({ id: Date.now(), person, amount, dir, concept, date, settled: false, settledDate: null });
+    const who    = (document.getElementById('pufo-who')?.value || document.getElementById('pufo-person')?.value || '').trim();
+    const amount = parseFloat(document.getElementById('pufo-amount')?.value || 0);
+    const dir    = window._pufoDir || document.getElementById('pufo-dir')?.value || 'me_debe';
+    const reason = (document.getElementById('pufo-reason')?.value || document.getElementById('pufo-concept')?.value || '').trim();
+    if (!who || !amount || amount <= 0) { toast('Introduce persona e importe'); return; }
+    dbPufos.push({ id: Date.now(), who, person: who, amount, dir, reason, concept: reason, date: todayISO(), settled: false });
     savePufos();
-    document.getElementById('pufo-person').value  = '';
-    document.getElementById('pufo-amount').value  = '';
-    document.getElementById('pufo-concept').value = '';
-    renderPufos();
+    showPat('pufos');
     toast('✓ Pufo registrado');
 }
 
@@ -1342,7 +1241,7 @@ function confirmSettle() {
 function deletePufo(idx) {
     dbPufos.splice(idx, 1);
     savePufos();
-    renderPufos();
+    showPat('pufos');
     toast('Pufo eliminado');
 }
 
@@ -1454,40 +1353,216 @@ renderSummary();
 
 
 
-/* ── PATRIMONIO SUB-TABS ── */
-let currentPatTab = 'cuentas';
+/* ══ PATRIMONIO ══ */
+let _curPat = 'cuentas';
 
-function switchPatTab(tab) {
-    currentPatTab = tab;
-    const sw = document.getElementById('sw'); if (sw) sw.scrollTo({top:0, behavior:'instant'});
-    const colors = {
-        cuentas: { bg:'rgba(201,168,76,0.15)', color:'var(--yellow)', border:'rgba(201,168,76,0.3)' },
-        huchas:  { bg:'rgba(82,183,136,0.15)', color:'var(--green)',  border:'rgba(82,183,136,0.3)' },
-        pufos:   { bg:'rgba(224,95,95,0.12)',  color:'var(--red)',    border:'rgba(224,95,95,0.25)' },
+function showPat(tab) {
+    _curPat = tab;
+    // Update buttons
+    const cfg = {
+        cuentas: {bg:'rgba(201,168,76,0.15)', color:'#c9a84c', border:'rgba(201,168,76,0.3)'},
+        huchas:  {bg:'rgba(82,183,136,0.15)',  color:'#52b788', border:'rgba(82,183,136,0.3)'},
+        pufos:   {bg:'rgba(224,95,95,0.12)',   color:'#e05f5f', border:'rgba(224,95,95,0.25)'},
     };
     ['cuentas','huchas','pufos'].forEach(t => {
-        const v = document.getElementById('pat-view-' + t);
-        const b = document.getElementById('ptab-' + t);
-        if (v) v.style.display = t === tab ? 'block' : 'none';
-        if (b) {
-            const active = t === tab;
-            const col = colors[t];
-            b.style.background  = active ? col.bg    : 'transparent';
-            b.style.color       = active ? col.color : '#4a4d56';
-            b.style.borderColor = active ? col.border: 'rgba(255,255,255,0.07)';
-            b.style.fontFamily  = "'DM Sans',sans-serif";
-            b.style.fontSize    = '12px';
-            b.style.fontWeight  = '700';
-        }
+        const b = document.getElementById('pb-' + t);
+        if (!b) return;
+        const a = t === tab;
+        b.style.background  = a ? cfg[t].bg    : 'transparent';
+        b.style.color       = a ? cfg[t].color  : '#4a4d56';
+        b.style.borderColor = a ? cfg[t].border : 'rgba(255,255,255,0.07)';
     });
-    if (tab === 'cuentas') renderCuentas();
-    if (tab === 'huchas')  renderSavings();
-    if (tab === 'pufos')   { renderPufos(); setPufosFilter('all'); }
+    // Render content
+    const el = document.getElementById('pat-content');
+    if (!el) return;
+    if (tab === 'cuentas') el.innerHTML = renderCuentasHTML();
+    if (tab === 'huchas')  el.innerHTML = renderHuchasHTML();
+    if (tab === 'pufos')   el.innerHTML = renderPufosHTML();
+    // Scroll to top after render
+    const sw = document.getElementById('sw');
+    if (sw) sw.scrollTop = 0;
 }
 
-function renderPatrimonioTab(tab) {
-    switchPatTab(tab || currentPatTab || 'cuentas');
+function renderPatrimonioTab(tab) { showPat(tab || _curPat); }
+function renderCuentas()  { if (_curPat === 'cuentas') showPat('cuentas'); }
+function renderSavingsInPat() { if (_curPat === 'huchas') showPat('huchas'); }
+
+/* ── CUENTAS HTML ── */
+function renderCuentasHTML() {
+    let assets = 0, liabilities = 0;
+    dbCuentas.forEach(cu => {
+        const meta = CUENTA_TYPE[cu.type];
+        if (meta?.asset) assets += cu.balance;
+        else liabilities += Math.abs(cu.balance);
+    });
+    const net = assets - liabilities;
+    const netColor = net >= 0 ? '#5b8af0' : '#e05f5f';
+    const netFmt = fmt(net);
+
+    const assetList  = dbCuentas.map((cu,i)=>({cu,i})).filter(({cu})=>CUENTA_TYPE[cu.type]?.asset !== false);
+    const liabList   = dbCuentas.map((cu,i)=>({cu,i})).filter(({cu})=>CUENTA_TYPE[cu.type]?.asset === false);
+
+    const renderGroup = (items, isLiab) => items.map(({cu,i}) => {
+        const meta = CUENTA_TYPE[cu.type] || {icon:'💰', label:'Cuenta'};
+        return `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+            <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:${cu.color||'#5b8af0'}18;border:1px solid ${cu.color||'#5b8af0'}30;display:flex;align-items:center;justify-content:center;font-size:18px">${meta.icon}</div>
+            <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:600;color:#e8e9ee">${cu.name}</div>
+                <div style="font-size:11px;color:#4a4d56">${meta.label}${cu.note?' · '+cu.note:''}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+                <div style="font-family:'DM Serif Display',serif;font-size:18px;color:${isLiab?'#e05f5f':'#e8e9ee'}">${fmtShort(cu.balance)}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <button onclick="openCuentaForm(${i})" style="width:28px;height:28px;border-radius:7px;background:rgba(91,138,240,0.08);color:#5b8af0;border:1px solid rgba(91,138,240,0.15);cursor:pointer">✎</button>
+                <button onclick="delCuenta(${i})" style="width:28px;height:28px;border-radius:7px;background:rgba(224,95,95,0.06);color:#e05f5f;border:1px solid rgba(224,95,95,0.12);cursor:pointer">✕</button>
+            </div>
+        </div>`;
+    }).join('');
+
+    return `
+    <div style="background:linear-gradient(145deg,#191c22,#1a1f2c);border:1px solid rgba(91,138,240,0.2);border-radius:20px;padding:20px;margin-bottom:12px;text-align:center">
+        <div style="font-size:11px;font-weight:600;color:#4a4d56;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Patrimonio neto</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:44px;line-height:1;color:${netColor}">${netFmt}</div>
+        <div style="font-size:12px;color:#8a8d96;margin-top:6px">${dbCuentas.length} cuenta${dbCuentas.length!==1?'s':''}</div>
+        <div style="display:flex;justify-content:center;gap:24px;margin-top:14px">
+            <div><div style="font-size:12px;color:#52b788;font-weight:700">${fmtShort(assets)}</div><div style="font-size:10px;color:#4a4d56;margin-top:2px">Activos</div></div>
+            <div style="width:1px;background:rgba(255,255,255,0.07)"></div>
+            <div><div style="font-size:12px;color:#e05f5f;font-weight:700">${fmtShort(liabilities)}</div><div style="font-size:10px;color:#4a4d56;margin-top:2px">Pasivos</div></div>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;color:#4a4d56;text-transform:uppercase;letter-spacing:0.8px">Mis cuentas</div>
+        <button onclick="openCuentaForm()" style="background:rgba(91,138,240,0.1);color:#5b8af0;border:1px solid rgba(91,138,240,0.2);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">+ Añadir</button>
+    </div>
+    ${!dbCuentas.length ? `<div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:28px;text-align:center"><div style="font-size:32px;margin-bottom:10px">🏦</div><div style="font-size:14px;color:#8a8d96">Sin cuentas todavía</div></div>` : `
+    ${assetList.length ? `<div style="font-size:10px;font-weight:700;color:#52b788;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Activos</div><div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin-bottom:12px">${renderGroup(assetList,false)}</div>` : ''}
+    ${liabList.length ? `<div style="font-size:10px;font-weight:700;color:#e05f5f;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Pasivos</div><div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden">${renderGroup(liabList,true)}</div>` : ''}`}`;
 }
+
+function delCuenta(idx) {
+    if (!confirm('¿Eliminar "' + dbCuentas[idx].name + '"?')) return;
+    dbCuentas.splice(idx, 1);
+    saveCuentas();
+    showPat('cuentas');
+}
+
+/* ── HUCHAS HTML ── */
+function renderHuchasHTML() {
+    const listHTML = !dbHuchas.length
+        ? `<div style="text-align:center;padding:20px 0 16px;font-size:13px;color:#4a4d56">Sin huchas. Crea la primera.</div>`
+        : dbHuchas.map((h,i) => {
+            const pct = Math.min((h.current/h.goal)*100,100);
+            const done = h.current >= h.goal;
+            const left = Math.max(h.goal-h.current,0);
+            return `<div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                    <div style="font-size:24px">${h.emoji||'🎯'}</div>
+                    <div style="flex:1">
+                        <div style="font-size:14px;font-weight:600;color:#e8e9ee">${h.name}</div>
+                        <div style="font-size:11px;color:#4a4d56">${done?'✓ Completada':'Faltan '+fmt(left)}</div>
+                    </div>
+                    <button onclick="delHucha(${i})" style="width:28px;height:28px;border-radius:7px;background:rgba(224,95,95,0.06);color:#e05f5f;border:1px solid rgba(224,95,95,0.12);cursor:pointer">✕</button>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+                    <span style="color:#5b8af0;font-weight:600">${fmt(h.current)}</span>
+                    <span style="color:#4a4d56">${fmt(h.goal)}</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden">
+                    <div style="height:100%;width:${pct}%;background:${h.color||'#5b8af0'};border-radius:99px;transition:width 0.5s ease"></div>
+                </div>
+            </div>`;
+        }).join('');
+
+    return listHTML + `
+    <div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px;margin-top:8px">
+        <div style="font-size:10px;font-weight:700;color:#4a4d56;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Nueva hucha</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input class="inp" id="h-name" type="text" placeholder="Nombre" style="flex:1;margin:0">
+            <input class="inp" id="h-emoji" type="text" placeholder="🎯" maxlength="2" style="width:56px;text-align:center;font-size:20px;margin:0">
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input class="inp" id="h-goal" type="number" placeholder="Objetivo €" style="flex:1;margin:0">
+            <input class="inp" id="h-current" type="number" placeholder="Tengo ya €" style="flex:1;margin:0">
+        </div>
+        <input class="inp" id="h-deadline" type="date" style="margin-bottom:8px;font-size:13px">
+        <select class="inp" id="h-color" style="margin-bottom:12px">
+            <option value="#c9a84c">🟡 Dorado</option>
+            <option value="#52b788">🟢 Verde</option>
+            <option value="#5b8af0">🔵 Azul</option>
+            <option value="#9b7fe0">🟣 Morado</option>
+        </select>
+        <button onclick="addHucha()" style="width:100%;padding:12px;border-radius:12px;background:#5b8af0;color:#fff;border:none;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer">Crear hucha</button>
+    </div>`;
+}
+
+function delHucha(i) {
+    dbHuchas.splice(i,1);
+    localStorage.setItem('lifeos_finances_huchas_v1', JSON.stringify(dbHuchas));
+    showPat('huchas');
+}
+
+/* ── PUFOS HTML ── */
+function renderPufosHTML() {
+    const active   = dbPufos.filter(p=>!p.settled);
+    const settled  = dbPufos.filter(p=>p.settled);
+    const meDeben  = active.filter(p=>p.dir==='me_debe').reduce((s,p)=>s+p.amount,0);
+    const lesDebo  = active.filter(p=>p.dir==='le_debo').reduce((s,p)=>s+p.amount,0);
+    let _pufosFilter = _pufosFilter || 'all';
+
+    const listHTML = !active.length
+        ? `<div style="text-align:center;padding:20px;font-size:13px;color:#4a4d56">Sin pufos activos.</div>`
+        : active.map((p,i)=>`
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+                <div style="font-size:24px">${p.dir==='me_debe'?'💰':'📤'}</div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:600;color:#e8e9ee">${p.who}</div>
+                    <div style="font-size:11px;color:#4a4d56">${p.reason||''}</div>
+                </div>
+                <div style="font-size:16px;font-weight:700;color:${p.dir==='me_debe'?'#52b788':'#e05f5f'}">${fmt(p.amount)}</div>
+                <button onclick="settlePufo(${i})" style="padding:5px 10px;border-radius:8px;background:rgba(82,183,136,0.1);color:#52b788;border:1px solid rgba(82,183,136,0.2);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Saldar</button>
+            </div>`).join('');
+
+    return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px">
+            <div style="font-size:11px;color:#4a4d56;margin-bottom:4px">Me deben</div>
+            <div style="font-size:20px;font-weight:700;color:#52b788">${fmt(meDeben)}</div>
+        </div>
+        <div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px">
+            <div style="font-size:11px;color:#4a4d56;margin-bottom:4px">Les debo</div>
+            <div style="font-size:20px;font-weight:700;color:#e05f5f">${fmt(lesDebo)}</div>
+        </div>
+    </div>
+    <div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;margin-bottom:12px">
+        ${listHTML}
+    </div>
+    <div style="background:#191c22;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px">
+        <div style="font-size:10px;font-weight:700;color:#4a4d56;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Nuevo pufo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <button id="pf-btn-me" onclick="this.style.background='rgba(82,183,136,0.12)';this.style.color='#52b788';document.getElementById('pf-btn-el').style.background='transparent';document.getElementById('pf-btn-el').style.color='#4a4d56';window._pufoDir='me_debe'"
+                style="padding:10px;border-radius:10px;background:rgba(82,183,136,0.12);color:#52b788;border:1px solid rgba(82,183,136,0.2);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Me deben</button>
+            <button id="pf-btn-el" onclick="this.style.background='rgba(224,95,95,0.1)';this.style.color='#e05f5f';document.getElementById('pf-btn-me').style.background='transparent';document.getElementById('pf-btn-me').style.color='#4a4d56';window._pufoDir='le_debo'"
+                style="padding:10px;border-radius:10px;background:transparent;color:#4a4d56;border:1px solid rgba(255,255,255,0.07);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Les debo</button>
+        </div>
+        <input class="inp" id="pufo-who" type="text" placeholder="¿Quién?">
+        <input class="inp" id="pufo-amount" type="number" step="0.01" placeholder="Importe €">
+        <input class="inp" id="pufo-reason" type="text" placeholder="Motivo (opcional)">
+        <button onclick="addPufo()" style="width:100%;padding:12px;border-radius:12px;background:#5b8af0;color:#fff;border:none;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px">Añadir pufo</button>
+    </div>`;
+}
+
+function settlePufo(i) {
+    const active = dbPufos.filter(p=>!p.settled);
+    const pufo = active[i];
+    if (!pufo) return;
+    const idx = dbPufos.indexOf(pufo);
+    dbPufos[idx].settled = true;
+    savePufos();
+    showPat('pufos');
+    toast('✓ Pufo saldado');
+}
+
 
 /* ════════════════════════════════════════
    CUENTAS / PATRIMONIO
@@ -1556,7 +1631,7 @@ function saveCuenta() {
     }
     saveCuentas();
     closeCuentaModal();
-    renderCuentas();
+    showPat('cuentas');
     toast('✓ ' + name + ' guardada');
 }
 
